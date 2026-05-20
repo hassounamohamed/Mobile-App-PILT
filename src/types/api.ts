@@ -4,7 +4,8 @@ export interface RoleResponse {
   id: number;
   nom: string;
   code: string;
-  niveau_acces: number;
+  /** Présent sur /roles ; peut être absent sur les réponses utilisateur admin. */
+  niveau_acces?: number;
 }
 
 export interface PermissionResponse {
@@ -22,6 +23,12 @@ export interface UtilisateurResponse {
   is_active: boolean;
   role?: RoleResponse;
   created_at: string;
+}
+
+export interface AssigneeRef {
+  id: number;
+  nom?: string;
+  email?: string;
 }
 
 // ===== Projects =====
@@ -84,8 +91,10 @@ export interface UserStoryResponse {
   module_id?: number;
   epic_id?: number;
   sprint_id?: number;
-  assignee?: UtilisateurResponse;
-  testeur?: UtilisateurResponse;
+  assignee?: AssigneeRef;
+  assignee_id?: number;
+  testeur?: AssigneeRef;
+  testeur_id?: number;
   projet_id?: number;
 }
 

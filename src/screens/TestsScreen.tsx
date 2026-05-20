@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -13,7 +13,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { projectsService } from "@/services/projects";
 import { cahierTestsService } from "@/services/tests";
 import {
@@ -59,7 +61,236 @@ function formatDateTime(value?: string | null) {
   )}`;
 }
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.background },
+  pageTitle: {
+    color: c.text,
+    fontSize: SIZES.font2xl,
+    fontWeight: "800",
+    marginBottom: 2,
+  },
+  pageSubtitle: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    marginBottom: SIZES.lg,
+  },
+  projectPicker: { marginBottom: SIZES.md },
+  projectChip: {
+    paddingHorizontal: SIZES.md,
+    paddingVertical: SIZES.sm,
+    borderRadius: SIZES.radiusSm,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    backgroundColor: c.backgroundSecondary,
+    marginRight: SIZES.sm,
+  },
+  projectChipActive: {
+    backgroundColor: c.primary,
+    borderColor: c.primary,
+  },
+  projectChipText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+  },
+  projectChipTextActive: { color: c.white },
+  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
+  emptyText: { color: c.textSecondary, fontSize: SIZES.fontBase },
+  cahierSummary: {
+    backgroundColor: c.backgroundSecondary,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    padding: SIZES.lg,
+    marginBottom: SIZES.md,
+  },
+  cahierHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: SIZES.md,
+  },
+  cahierTitle: {
+    color: c.text,
+    fontSize: SIZES.fontBase,
+    fontWeight: "700",
+    flex: 1,
+    marginRight: SIZES.sm,
+  },
+  pill: {
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 2,
+    borderRadius: SIZES.radiusSm,
+  },
+  pillText: { fontSize: SIZES.fontXs, fontWeight: "700" },
+  progressRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: SIZES.sm,
+  },
+  progressLabel: {
+    color: c.text,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+  },
+  progressStats: { color: c.textSecondary, fontSize: SIZES.fontXs },
+  progressBarBg: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: c.inputBorder,
+  },
+  progressBarFill: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: c.primary,
+  },
+  casCard: {
+    backgroundColor: c.backgroundSecondary,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    padding: SIZES.md,
+    marginBottom: SIZES.sm,
+  },
+  casHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SIZES.sm,
+    marginBottom: SIZES.sm,
+  },
+  casTitle: {
+    color: c.text,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+    flex: 1,
+  },
+  casDesc: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginBottom: SIZES.sm,
+  },
+  casHint: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+  },
+  statusPill: {
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 2,
+    borderRadius: SIZES.radiusSm,
+  },
+  statusPillText: {
+    fontSize: SIZES.fontXs,
+    fontWeight: "700",
+  },
+  casActions: { flexDirection: "row", gap: SIZES.sm, flexWrap: "wrap" },
+  casBtn: {
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 4,
+    borderRadius: SIZES.radiusSm,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+  },
+  casBtnText: { fontSize: SIZES.fontXs, fontWeight: "600" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
+  },
+  modalCard: {
+    backgroundColor: c.backgroundSecondary,
+    borderTopLeftRadius: SIZES.radiusXl,
+    borderTopRightRadius: SIZES.radiusXl,
+    padding: SIZES.xl,
+    paddingBottom: SIZES.xxl,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SIZES.lg,
+  },
+  modalTitle: { color: c.text, fontSize: SIZES.fontLg, fontWeight: "700" },
+  modalSubtitle: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginTop: 2,
+  },
+  caseDetailBox: {
+    backgroundColor: c.background,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    gap: 4,
+    marginBottom: SIZES.md,
+  },
+  caseMetaGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SIZES.sm,
+    marginBottom: SIZES.sm,
+  },
+  caseMetaCard: {
+    width: "48%",
+    backgroundColor: c.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    borderRadius: SIZES.radiusSm,
+    padding: SIZES.sm,
+  },
+  caseMetaLabel: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginBottom: 2,
+  },
+  caseMetaValue: {
+    color: c.text,
+    fontSize: SIZES.fontSm,
+    fontWeight: "700",
+  },
+  caseDetailText: { color: c.textSecondary, fontSize: SIZES.fontSm },
+  historyBox: {
+    backgroundColor: c.background,
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    marginBottom: SIZES.md,
+  },
+  historyTitle: {
+    color: c.text,
+    fontSize: SIZES.fontBase,
+    fontWeight: "700",
+    marginBottom: SIZES.sm,
+  },
+  historyScroll: { maxHeight: 220 },
+  historyEmpty: { color: c.textSecondary, fontSize: SIZES.fontSm },
+  historyRow: {
+    paddingVertical: SIZES.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: c.inputBorder,
+  },
+  historyEntryTitle: {
+    color: c.text,
+    fontSize: SIZES.fontSm,
+    fontWeight: "700",
+  },
+  historyEntryDetail: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginTop: 2,
+  },
+  historyEntryComment: {
+    color: c.text,
+    fontSize: SIZES.fontXs,
+    marginTop: 4,
+  },
+});
+}
+
 export default function TestsScreen() {
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const insets = useSafeAreaInsets();
   const [projects, setProjects] = useState<ProjetResponse[]>([]);
   const [selectedProject, setSelectedProject] = useState<ProjetResponse | null>(
@@ -193,7 +424,7 @@ export default function TestsScreen() {
               setRefreshing(true);
               loadProjects();
             }}
-            tintColor={COLORS.primary}
+            tintColor={c.primary}
           />
         }
       >
@@ -202,7 +433,7 @@ export default function TestsScreen() {
 
         {loadingProjects ? (
           <ActivityIndicator
-            color={COLORS.primary}
+            color={c.primary}
             style={{ marginTop: SIZES.xxl }}
           />
         ) : projects.length === 0 ? (
@@ -241,7 +472,7 @@ export default function TestsScreen() {
 
             {loadingTests ? (
               <ActivityIndicator
-                color={COLORS.primary}
+                color={c.primary}
                 style={{ marginTop: SIZES.xl }}
               />
             ) : (
@@ -283,7 +514,7 @@ export default function TestsScreen() {
                     <Ionicons
                       name="clipboard-outline"
                       size={48}
-                      color={COLORS.textSecondary}
+                      color={c.textSecondary}
                     />
                     <Text style={styles.emptyText}>Aucun cas de test</Text>
                   </View>
@@ -344,7 +575,7 @@ export default function TestsScreen() {
                 <Text style={styles.modalSubtitle}>Détails du cas de test</Text>
               </View>
               <TouchableOpacity onPress={() => setShowCasDetail(false)}>
-                <Ionicons name="close" size={24} color={COLORS.textSecondary} />
+                <Ionicons name="close" size={24} color={c.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -392,7 +623,7 @@ export default function TestsScreen() {
                   <Text style={styles.historyTitle}>Historique</Text>
                   {loadingHistory ? (
                     <ActivityIndicator
-                      color={COLORS.primary}
+                      color={c.primary}
                       style={{ marginTop: SIZES.sm }}
                     />
                   ) : casHistory.length === 0 ? (
@@ -460,226 +691,4 @@ export default function TestsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
-  pageTitle: {
-    color: COLORS.text,
-    fontSize: SIZES.font2xl,
-    fontWeight: "800",
-    marginBottom: 2,
-  },
-  pageSubtitle: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    marginBottom: SIZES.lg,
-  },
-  projectPicker: { marginBottom: SIZES.md },
-  projectChip: {
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusSm,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    backgroundColor: COLORS.backgroundSecondary,
-    marginRight: SIZES.sm,
-  },
-  projectChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  projectChipText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-  },
-  projectChipTextActive: { color: COLORS.white },
-  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
-  emptyText: { color: COLORS.textSecondary, fontSize: SIZES.fontBase },
-  cahierSummary: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    padding: SIZES.lg,
-    marginBottom: SIZES.md,
-  },
-  cahierHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: SIZES.md,
-  },
-  cahierTitle: {
-    color: COLORS.text,
-    fontSize: SIZES.fontBase,
-    fontWeight: "700",
-    flex: 1,
-    marginRight: SIZES.sm,
-  },
-  pill: {
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 2,
-    borderRadius: SIZES.radiusSm,
-  },
-  pillText: { fontSize: SIZES.fontXs, fontWeight: "700" },
-  progressRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: SIZES.sm,
-  },
-  progressLabel: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-  },
-  progressStats: { color: COLORS.textSecondary, fontSize: SIZES.fontXs },
-  progressBarBg: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.inputBorder,
-  },
-  progressBarFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.primary,
-  },
-  casCard: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    padding: SIZES.md,
-    marginBottom: SIZES.sm,
-  },
-  casHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SIZES.sm,
-    marginBottom: SIZES.sm,
-  },
-  casTitle: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-    flex: 1,
-  },
-  casDesc: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginBottom: SIZES.sm,
-  },
-  casHint: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-  },
-  statusPill: {
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 2,
-    borderRadius: SIZES.radiusSm,
-  },
-  statusPillText: {
-    fontSize: SIZES.fontXs,
-    fontWeight: "700",
-  },
-  casActions: { flexDirection: "row", gap: SIZES.sm, flexWrap: "wrap" },
-  casBtn: {
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 4,
-    borderRadius: SIZES.radiusSm,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-  },
-  casBtnText: { fontSize: SIZES.fontXs, fontWeight: "600" },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "flex-end",
-  },
-  modalCard: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderTopLeftRadius: SIZES.radiusXl,
-    borderTopRightRadius: SIZES.radiusXl,
-    padding: SIZES.xl,
-    paddingBottom: SIZES.xxl,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SIZES.lg,
-  },
-  modalTitle: { color: COLORS.text, fontSize: SIZES.fontLg, fontWeight: "700" },
-  modalSubtitle: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginTop: 2,
-  },
-  caseDetailBox: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    gap: 4,
-    marginBottom: SIZES.md,
-  },
-  caseMetaGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: SIZES.sm,
-    marginBottom: SIZES.sm,
-  },
-  caseMetaCard: {
-    width: "48%",
-    backgroundColor: COLORS.backgroundSecondary,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    borderRadius: SIZES.radiusSm,
-    padding: SIZES.sm,
-  },
-  caseMetaLabel: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginBottom: 2,
-  },
-  caseMetaValue: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "700",
-  },
-  caseDetailText: { color: COLORS.textSecondary, fontSize: SIZES.fontSm },
-  historyBox: {
-    backgroundColor: COLORS.background,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    marginBottom: SIZES.md,
-  },
-  historyTitle: {
-    color: COLORS.text,
-    fontSize: SIZES.fontBase,
-    fontWeight: "700",
-    marginBottom: SIZES.sm,
-  },
-  historyScroll: { maxHeight: 220 },
-  historyEmpty: { color: COLORS.textSecondary, fontSize: SIZES.fontSm },
-  historyRow: {
-    paddingVertical: SIZES.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.inputBorder,
-  },
-  historyEntryTitle: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "700",
-  },
-  historyEntryDetail: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginTop: 2,
-  },
-  historyEntryComment: {
-    color: COLORS.text,
-    fontSize: SIZES.fontXs,
-    marginTop: 4,
-  },
-});
+

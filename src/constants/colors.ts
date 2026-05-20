@@ -1,5 +1,5 @@
 export const DARK_COLORS = {
-  // Main colors from PILT platform
+  // Main colors from FlowPilot platform
   primary: "#0066FF", // Bright blue
   primaryLight: "#007AFF",
 
@@ -74,6 +74,8 @@ export const LIGHT_COLORS = {
     900: "#111827",
   },
 };
+
+export type ThemePalette = typeof LIGHT_COLORS;
 
 export const COLORS = { ...DARK_COLORS };
 

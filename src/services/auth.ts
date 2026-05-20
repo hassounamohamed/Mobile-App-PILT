@@ -1,35 +1,36 @@
+import { API_TIMEOUT_MS, getApiBaseUrl } from "@/config/apiBaseUrl";
 import {
     AuthResponse,
+    FlowPilotAuthResponse,
+    FlowPilotRegisterRequest,
     ForgotPasswordRequest,
     LoginCredentials,
-    PILTAuthResponse,
-    PILTRegisterRequest,
     RegisterCredentials,
     ResetPasswordRequest,
 } from "@/types/auth";
 import axios, { AxiosInstance } from "axios";
 
-// Configure with PILT backend URL
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000";
+// Configure with FlowPilot backend URL
+const API_BASE_URL = getApiBaseUrl();
 
-// Type for PILT API responses
-interface PILTTokenRole {
+// Type for FlowPilot API responses
+interface FlowPilotTokenRole {
   id: number;
   nom: string;
   code: string;
   niveau_acces: number;
 }
 
-interface PILTMeResponse {
+interface FlowPilotMeResponse {
   id: number;
   email: string;
   nom: string;
   telephone?: string;
-  role?: PILTTokenRole;
+  role?: FlowPilotTokenRole;
   created_at?: string;
 }
 
-interface PILTRegisterResponse {
+interface FlowPilotRegisterResponse {
   message: string;
   user_id: number;
   role_id: number;
@@ -41,7 +42,7 @@ class AuthApi {
   constructor() {
     this.axiosInstance = axios.create({
       baseURL: API_BASE_URL,
-      timeout: 10000,
+      timeout: API_TIMEOUT_MS,
       headers: {
         "Content-Type": "application/json",
       },
@@ -58,25 +59,27 @@ class AuthApi {
   }
 
   /**
-   * Transform PILT API response to app format
+   * Transform FlowPilot API response to app format
    */
-  private transformPILTResponse(piltResponse: PILTAuthResponse): AuthResponse {
+  private transformFlowPilotResponse(
+    FlowPilotResponse: FlowPilotAuthResponse,
+  ): AuthResponse {
     return {
       user: {
-        id: piltResponse.user_id.toString(),
-        email: piltResponse.email,
-        fullName: piltResponse.nom,
+        id: FlowPilotResponse.user_id.toString(),
+        email: FlowPilotResponse.email,
+        fullName: FlowPilotResponse.nom,
         phoneNumber: "", // Backend doesn't return phone in auth response
-        role: this.getRoleFromCode(piltResponse.role?.code),
+        role: this.getRoleFromCode(FlowPilotResponse.role?.code),
         createdAt: new Date().toISOString(),
       },
-      token: piltResponse.access_token,
-      refreshToken: "", // PILT doesn't use refresh tokens in auth response
+      token: FlowPilotResponse.access_token,
+      refreshToken: "", // FlowPilot doesn't use refresh tokens in auth response
     };
   }
 
   /**
-   * Convert PILT role code to app role name
+   * Convert FlowPilot role code to app role name
    */
   private getRoleFromCode(
     code?: string,
@@ -107,7 +110,7 @@ class AuthApi {
   }
 
   /**
-   * Convert app role name to PILT role ID
+   * Convert app role name to FlowPilot role ID
    */
   private getRoleId(role: string): number {
     switch (role) {
@@ -128,12 +131,12 @@ class AuthApi {
 
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     try {
-      // PILT uses OAuth2PasswordRequestForm (username/password)
+      // FlowPilot uses OAuth2PasswordRequestForm (username/password)
       const formData = new URLSearchParams();
       formData.append("username", credentials.email);
       formData.append("password", credentials.password);
 
-      const response = await this.axiosInstance.post<PILTAuthResponse>(
+      const response = await this.axiosInstance.post<FlowPilotAuthResponse>(
         "/auth/login",
         formData,
         {
@@ -143,13 +146,14 @@ class AuthApi {
         },
       );
 
-      const authResponse = this.transformPILTResponse(response.data);
+      const authResponse = this.transformFlowPilotResponse(response.data);
       this.setAuthToken(authResponse.token);
 
       // If role is not present in token payload, fetch /auth/me to resolve exact role.
       if (!response.data.role?.code) {
         try {
-          const me = await this.axiosInstance.get<PILTMeResponse>("/auth/me");
+          const me =
+            await this.axiosInstance.get<FlowPilotMeResponse>("/auth/me");
           authResponse.user = {
             ...authResponse.user,
             id: me.data.id.toString(),
@@ -170,10 +174,12 @@ class AuthApi {
     }
   }
 
-  async register(credentials: RegisterCredentials): Promise<PILTRegisterResponse> {
+  async register(
+    credentials: RegisterCredentials,
+  ): Promise<FlowPilotRegisterResponse> {
     try {
-      // Transform app format to PILT format
-      const piltRequest: PILTRegisterRequest = {
+      // Transform app format to FlowPilot format
+      const FlowPilotRequest: FlowPilotRegisterRequest = {
         nom: credentials.fullName,
         email: credentials.email,
         motDePasse: credentials.password,
@@ -181,9 +187,9 @@ class AuthApi {
         role_id: this.getRoleId(credentials.role),
       };
 
-      const response = await this.axiosInstance.post<PILTRegisterResponse>(
+      const response = await this.axiosInstance.post<FlowPilotRegisterResponse>(
         "/auth/register",
-        piltRequest,
+        FlowPilotRequest,
       );
       return response.data;
     } catch (error) {
@@ -224,7 +230,7 @@ class AuthApi {
 
   async selectRole(userId: number, role: string): Promise<AuthResponse> {
     try {
-      const response = await this.axiosInstance.post<PILTAuthResponse>(
+      const response = await this.axiosInstance.post<FlowPilotAuthResponse>(
         "/auth/select-role",
         {
           user_id: userId,
@@ -232,7 +238,7 @@ class AuthApi {
         },
       );
 
-      const authResponse = this.transformPILTResponse(response.data);
+      const authResponse = this.transformFlowPilotResponse(response.data);
       this.setAuthToken(authResponse.token);
       return authResponse;
     } catch (error) {
@@ -242,10 +248,10 @@ class AuthApi {
 
   async loginWithGoogle(googleToken: string): Promise<AuthResponse> {
     try {
-      // PILT OAuth callback would handle this
-      // For now, redirect to PILT OAuth login flow
+      // FlowPilot OAuth callback would handle this
+      // For now, redirect to FlowPilot OAuth login flow
       throw new Error(
-        "Google login via PILT is handled through OAuth callback",
+        "Google login via FlowPilot is handled through OAuth callback",
       );
     } catch (error) {
       throw this.handleError(error);
@@ -254,10 +260,10 @@ class AuthApi {
 
   async loginWithGitHub(githubToken: string): Promise<AuthResponse> {
     try {
-      // PILT OAuth callback would handle this
-      // For now, redirect to PILT OAuth login flow
+      // FlowPilot OAuth callback would handle this
+      // For now, redirect to FlowPilot OAuth login flow
       throw new Error(
-        "GitHub login via PILT is handled through OAuth callback",
+        "GitHub login via FlowPilot is handled through OAuth callback",
       );
     } catch (error) {
       throw this.handleError(error);
@@ -266,12 +272,12 @@ class AuthApi {
 
   async refreshToken(refreshToken: string): Promise<AuthResponse> {
     try {
-      const response = await this.axiosInstance.post<PILTAuthResponse>(
+      const response = await this.axiosInstance.post<FlowPilotAuthResponse>(
         "/auth/refresh",
         { refresh_token: refreshToken },
       );
 
-      const authResponse = this.transformPILTResponse(response.data);
+      const authResponse = this.transformFlowPilotResponse(response.data);
       this.setAuthToken(authResponse.token);
       return authResponse;
     } catch {
@@ -289,9 +295,15 @@ class AuthApi {
 
   private handleError(error: any): Error {
     if (axios.isAxiosError(error)) {
+      if (error.code === "ECONNABORTED" || error.message?.includes("timeout")) {
+        return new Error(
+          `Request timeout after ${API_TIMEOUT_MS}ms. Verify backend availability and EXPO_PUBLIC_API_URL (${API_BASE_URL}).`,
+        );
+      }
+
       if (error.message === "Network Error") {
         return new Error(
-          `Network Error: backend injoom maywasalsh. Thabet EXPO_PUBLIC_API_URL (${API_BASE_URL}) w anna serveur ykoun shayyekh.`
+          `Network Error: Backend error check: EXPO_PUBLIC_API_URL (${API_BASE_URL}) and which serveur.`,
         );
       }
 

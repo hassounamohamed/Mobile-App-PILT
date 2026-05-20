@@ -2,7 +2,7 @@
 
 ## Overview
 
-This is a complete authentication system for the PILT-compatible mobile application with 4 key screens:
+This is a complete authentication system for the FlowPilot-compatible mobile application with 4 key screens:
 
 - **Select Role** - Role selection after OAuth signup
 - **Login** - Email/password authentication
@@ -32,14 +32,14 @@ src/
 │   ├── Container.tsx       # Main container with safe area
 │   └── Header.tsx          # Header with icon
 ├── constants/
-│   ├── colors.ts           # Theme colors (PILT platform style)
+│   ├── colors.ts           # Theme colors (FlowPilot platform style)
 │   ├── sizes.ts            # Spacing and sizing
 │   └── roles.ts            # User role definitions
 └── types/
     └── auth.ts             # TypeScript interfaces
 ```
 
-## Color Scheme (from PILT Platform)
+## Color Scheme (from FlowPilot Platform)
 
 - **Primary**: `#0066FF` (Bright Blue)
 - **Background**: `#0F1319` (Very Dark)
@@ -234,7 +234,7 @@ Conditional routing is handled in `app/_layout.tsx` using `useIsAuthenticated()`
 ✅ Persistent authentication (AsyncStorage)
 ✅ Token refresh capability
 ✅ Type-safe with TypeScript
-✅ Pixel-perfect PILT platform styling
+✅ Pixel-perfect FlowPilot platform styling
 ✅ Smooth animations
 
 ## Required Dependencies
@@ -330,7 +330,7 @@ babel.config.js (Updated)
 
 ## Color Reference
 
-The design is based on the PILT platform screenshots:
+The design is based on the FlowPilot platform screenshots:
 
 - **Role Selection Screen**: Dark theme with blue primary actions
 - **Login Screen**: "AgileFlow" branding, remember me checkbox, social logins

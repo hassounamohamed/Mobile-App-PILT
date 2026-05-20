@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS, SIZES } from "@/constants";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { projectsService } from "@/services/projects";
 import { sprintsService } from "@/services/sprints";
 import type { ProjetResponse, SprintResponse } from "@/types/api";
-import { dashboardStyles as styles } from "@/components/dashboardStyles";
+import { useDashboardStyles } from "@/components/dashboardStyles";
 import { StatItem } from "@/utils/DashboardUtils";
 import {
   HeroCard,
@@ -13,12 +14,19 @@ import {
   StatCard,
   StatusBadge,
   EmptyState,
+  NotificationBell,
 } from "@/components/DashboardSharedComponents";
+import { useNotificationRealtime } from "@/hooks/use-notification-realtime";
+import { NotificationsModal } from "@/components/NotificationsModal";
 
 export default function ScrumMasterDashboard() {
+  const styles = useDashboardStyles();
+  const c = useThemePalette();
   const insets = useSafeAreaInsets();
   const [projects, setProjects] = useState<ProjetResponse[]>([]);
   const [activeSprint, setActiveSprint] = useState<SprintResponse | null>(null);
+  const { enabled, unreadCount } = useNotificationRealtime();
+  const [showNotifications, setShowNotifications] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -63,7 +71,7 @@ export default function ScrumMasterDashboard() {
       label: "Projets",
       value: String(projects.length),
       icon: "folder",
-      tone: COLORS.primary,
+      tone: c.primary,
     },
     {
       label: "Sprint actif",
@@ -94,10 +102,29 @@ export default function ScrumMasterDashboard() {
             setRefreshing(true);
             load();
           }}
-          tintColor={COLORS.primary}
+          tintColor={c.primary}
         />
       }
     >
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: SIZES.lg }}>
+        <View>
+          <Text style={{ color: c.text, fontSize: SIZES.fontXl, fontWeight: "800" }}>
+            Scrum Master
+          </Text>
+          <Text style={{ color: c.textSecondary, fontSize: SIZES.fontSm }}>
+            Sprint Dashboard
+          </Text>
+        </View>
+        <NotificationBell
+          enabled={enabled}
+          unreadCount={unreadCount}
+          onPress={() =>
+            enabled
+              ? setShowNotifications(true)
+              : Alert.alert("Notifications", "Notifications desactivees")
+          }
+        />
+      </View>
       <HeroCard
         eyebrow="Scrum Master"
         title="Sprint Dashboard"
@@ -105,7 +132,7 @@ export default function ScrumMasterDashboard() {
       />
       {loading ? (
         <ActivityIndicator
-          color={COLORS.primary}
+          color={c.primary}
           style={{ marginVertical: SIZES.xl }}
         />
       ) : (
@@ -151,6 +178,10 @@ export default function ScrumMasterDashboard() {
           ))
         )}
       </SectionCard>
+      <NotificationsModal
+        visible={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </ScrollView>
   );
 }

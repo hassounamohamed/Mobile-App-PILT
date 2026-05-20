@@ -1,30 +1,169 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { projectsService } from "@/services/projects";
 import { ProjetResponse } from "@/types/api";
 
 const STATUS_META: Record<string, { label: string; color: string }> = {
-  ACTIF:   { label: "Actif",    color: "#22c55e" },
+  ACTIF: { label: "Actif", color: "#22c55e" },
   ARCHIVE: { label: "Archivé", color: "#9ca3af" },
-  TERMINE: { label: "Terminé",  color: "#3b82f6" },
+  TERMINE: { label: "Terminé", color: "#3b82f6" },
 };
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.background },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SIZES.lg,
+  },
+  pageTitle: { color: c.text, fontSize: SIZES.font2xl, fontWeight: "800" },
+  pageSubtitle: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    marginTop: 2,
+  },
+  createBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SIZES.sm,
+    backgroundColor: c.primary,
+    paddingHorizontal: SIZES.md,
+    paddingVertical: SIZES.sm,
+    borderRadius: SIZES.radiusMd,
+  },
+  createBtnText: {
+    color: c.white,
+    fontSize: SIZES.fontSm,
+    fontWeight: "700",
+  },
+  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.sm },
+  emptyText: { color: c.text, fontSize: SIZES.fontLg, fontWeight: "600" },
+  emptyHint: { color: c.textSecondary, fontSize: SIZES.fontSm },
+  card: {
+    backgroundColor: c.backgroundSecondary,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    padding: SIZES.lg,
+    marginBottom: SIZES.md,
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: SIZES.md,
+    marginBottom: SIZES.md,
+  },
+  projectIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: SIZES.radiusMd,
+    backgroundColor: `${c.primary}22`,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cardTitleWrap: { flex: 1 },
+  cardTitle: {
+    color: c.text,
+    fontSize: SIZES.fontBase,
+    fontWeight: "700",
+  },
+  cardDesc: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginTop: 2,
+  },
+  statusPill: {
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 3,
+    borderRadius: SIZES.radiusSm,
+  },
+  statusText: { fontSize: SIZES.fontXs, fontWeight: "700" },
+  statsRow: { flexDirection: "row", gap: SIZES.lg },
+  statItem: { flexDirection: "row", alignItems: "center", gap: 4 },
+  statText: { color: c.textSecondary, fontSize: SIZES.fontXs },
+  archiveBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginTop: SIZES.md,
+    paddingTop: SIZES.md,
+    borderTopWidth: 1,
+    borderTopColor: c.inputBorder,
+  },
+  archiveBtnText: { color: c.textSecondary, fontSize: SIZES.fontXs },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
+  },
+  modalCard: {
+    backgroundColor: c.backgroundSecondary,
+    borderTopLeftRadius: SIZES.radiusXl,
+    borderTopRightRadius: SIZES.radiusXl,
+    padding: SIZES.xl,
+    paddingBottom: SIZES.xxl,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SIZES.lg,
+  },
+  modalTitle: { color: c.text, fontSize: SIZES.fontLg, fontWeight: "700" },
+  inputLabel: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    marginBottom: SIZES.sm,
+  },
+  input: {
+    backgroundColor: c.background,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    color: c.text,
+    fontSize: SIZES.fontBase,
+    marginBottom: SIZES.md,
+  },
+  inputMulti: { height: 80, textAlignVertical: "top" },
+  submitBtn: {
+    backgroundColor: c.primary,
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    alignItems: "center",
+    marginTop: SIZES.sm,
+  },
+  submitBtnText: {
+    color: c.white,
+    fontSize: SIZES.fontBase,
+    fontWeight: "700",
+  },
+});
+}
+
 export default function ProjectsScreen() {
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const insets = useSafeAreaInsets();
   const [projects, setProjects] = useState<ProjetResponse[]>([]);
   const [loading, setLoading] = useState(true);
@@ -46,7 +185,9 @@ export default function ProjectsScreen() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   async function handleCreate() {
     if (!newNom.trim()) {
@@ -55,7 +196,10 @@ export default function ProjectsScreen() {
     }
     setCreating(true);
     try {
-      const proj = await projectsService.create({ nom: newNom.trim(), description: newDesc.trim() || undefined });
+      const proj = await projectsService.create({
+        nom: newNom.trim(),
+        description: newDesc.trim() || undefined,
+      });
       setProjects((prev) => [proj, ...prev]);
       setShowCreate(false);
       setNewNom("");
@@ -75,7 +219,9 @@ export default function ProjectsScreen() {
         onPress: async () => {
           try {
             const updated = await projectsService.archive(proj.id);
-            setProjects((prev) => prev.map((p) => (p.id === proj.id ? updated : p)));
+            setProjects((prev) =>
+              prev.map((p) => (p.id === proj.id ? updated : p)),
+            );
           } catch (e: any) {
             Alert.alert("Erreur", e.message);
           }
@@ -94,7 +240,14 @@ export default function ProjectsScreen() {
         }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); load(); }} tintColor={COLORS.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              load();
+            }}
+            tintColor={c.primary}
+          />
         }
       >
         <View style={styles.header}>
@@ -102,58 +255,105 @@ export default function ProjectsScreen() {
             <Text style={styles.pageTitle}>Projets</Text>
             <Text style={styles.pageSubtitle}>{projects.length} projet(s)</Text>
           </View>
-          <TouchableOpacity style={styles.createBtn} onPress={() => setShowCreate(true)}>
-            <Ionicons name="add" size={20} color={COLORS.white} />
+          <TouchableOpacity
+            style={styles.createBtn}
+            onPress={() => setShowCreate(true)}
+          >
+            <Ionicons name="add" size={20} color={c.white} />
             <Text style={styles.createBtnText}>Nouveau</Text>
           </TouchableOpacity>
         </View>
 
         {loading ? (
-          <ActivityIndicator color={COLORS.primary} style={{ marginTop: SIZES.xxl }} />
+          <ActivityIndicator
+            color={c.primary}
+            style={{ marginTop: SIZES.xxl }}
+          />
         ) : projects.length === 0 ? (
           <View style={styles.emptyWrap}>
-            <Ionicons name="folder-open-outline" size={52} color={COLORS.textSecondary} />
+            <Ionicons
+              name="folder-open-outline"
+              size={52}
+              color={c.textSecondary}
+            />
             <Text style={styles.emptyText}>Aucun projet</Text>
             <Text style={styles.emptyHint}>Créez votre premier projet</Text>
           </View>
         ) : (
           projects.map((proj) => {
-            const sm = STATUS_META[proj.statut] ?? { label: proj.statut, color: COLORS.textSecondary };
+            const sm = STATUS_META[proj.statut] ?? {
+              label: proj.statut,
+              color: c.textSecondary,
+            };
             return (
               <View key={proj.id} style={styles.card}>
                 <View style={styles.cardHeader}>
                   <View style={styles.projectIconWrap}>
-                    <Ionicons name="folder" size={20} color={COLORS.primary} />
+                    <Ionicons name="folder" size={20} color={c.primary} />
                   </View>
                   <View style={styles.cardTitleWrap}>
                     <Text style={styles.cardTitle}>{proj.nom}</Text>
                     {proj.description ? (
-                      <Text style={styles.cardDesc} numberOfLines={2}>{proj.description}</Text>
+                      <Text style={styles.cardDesc} numberOfLines={2}>
+                        {proj.description}
+                      </Text>
                     ) : null}
                   </View>
-                  <View style={[styles.statusPill, { backgroundColor: `${sm.color}22` }]}>
-                    <Text style={[styles.statusText, { color: sm.color }]}>{sm.label}</Text>
+                  <View
+                    style={[
+                      styles.statusPill,
+                      { backgroundColor: `${sm.color}22` },
+                    ]}
+                  >
+                    <Text style={[styles.statusText, { color: sm.color }]}>
+                      {sm.label}
+                    </Text>
                   </View>
                 </View>
 
                 <View style={styles.statsRow}>
                   <View style={styles.statItem}>
-                    <Ionicons name="layers-outline" size={14} color={COLORS.textSecondary} />
-                    <Text style={styles.statText}>{proj.nb_modules ?? 0} modules</Text>
+                    <Ionicons
+                      name="layers-outline"
+                      size={14}
+                      color={c.textSecondary}
+                    />
+                    <Text style={styles.statText}>
+                      {proj.nb_modules ?? 0} modules
+                    </Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Ionicons name="flag-outline" size={14} color={COLORS.textSecondary} />
-                    <Text style={styles.statText}>{proj.nb_epics ?? 0} epics</Text>
+                    <Ionicons
+                      name="flag-outline"
+                      size={14}
+                      color={c.textSecondary}
+                    />
+                    <Text style={styles.statText}>
+                      {proj.nb_epics ?? 0} epics
+                    </Text>
                   </View>
                   <View style={styles.statItem}>
-                    <Ionicons name="document-text-outline" size={14} color={COLORS.textSecondary} />
-                    <Text style={styles.statText}>{proj.nb_user_stories ?? 0} stories</Text>
+                    <Ionicons
+                      name="document-text-outline"
+                      size={14}
+                      color={c.textSecondary}
+                    />
+                    <Text style={styles.statText}>
+                      {proj.nb_user_stories ?? 0} stories
+                    </Text>
                   </View>
                 </View>
 
                 {proj.statut === "ACTIF" && (
-                  <TouchableOpacity style={styles.archiveBtn} onPress={() => handleArchive(proj)}>
-                    <Ionicons name="archive-outline" size={14} color={COLORS.textSecondary} />
+                  <TouchableOpacity
+                    style={styles.archiveBtn}
+                    onPress={() => handleArchive(proj)}
+                  >
+                    <Ionicons
+                      name="archive-outline"
+                      size={14}
+                      color={c.textSecondary}
+                    />
                     <Text style={styles.archiveBtnText}>Archiver</Text>
                   </TouchableOpacity>
                 )}
@@ -169,7 +369,7 @@ export default function ProjectsScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Nouveau projet</Text>
               <TouchableOpacity onPress={() => setShowCreate(false)}>
-                <Ionicons name="close" size={24} color={COLORS.textSecondary} />
+                <Ionicons name="close" size={24} color={c.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.inputLabel}>Nom du projet *</Text>
@@ -177,8 +377,8 @@ export default function ProjectsScreen() {
               style={styles.input}
               value={newNom}
               onChangeText={setNewNom}
-              placeholder="Ex: Application mobile PILT"
-              placeholderTextColor={COLORS.textSecondary}
+              placeholder="Ex: Application mobile FlowPilot"
+              placeholderTextColor={c.textSecondary}
             />
             <Text style={styles.inputLabel}>Description</Text>
             <TextInput
@@ -186,13 +386,17 @@ export default function ProjectsScreen() {
               value={newDesc}
               onChangeText={setNewDesc}
               placeholder="Description du projet..."
-              placeholderTextColor={COLORS.textSecondary}
+              placeholderTextColor={c.textSecondary}
               multiline
               numberOfLines={3}
             />
-            <TouchableOpacity style={styles.submitBtn} onPress={handleCreate} disabled={creating}>
+            <TouchableOpacity
+              style={styles.submitBtn}
+              onPress={handleCreate}
+              disabled={creating}
+            >
               {creating ? (
-                <ActivityIndicator color={COLORS.white} size="small" />
+                <ActivityIndicator color={c.white} size="small" />
               ) : (
                 <Text style={styles.submitBtnText}>Créer le projet</Text>
               )}
@@ -204,70 +408,4 @@ export default function ProjectsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: SIZES.lg },
-  pageTitle: { color: COLORS.text, fontSize: SIZES.font2xl, fontWeight: "800" },
-  pageSubtitle: { color: COLORS.textSecondary, fontSize: SIZES.fontSm, marginTop: 2 },
-  createBtn: {
-    flexDirection: "row", alignItems: "center", gap: SIZES.sm,
-    backgroundColor: COLORS.primary, paddingHorizontal: SIZES.md, paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusMd,
-  },
-  createBtnText: { color: COLORS.white, fontSize: SIZES.fontSm, fontWeight: "700" },
-  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.sm },
-  emptyText: { color: COLORS.text, fontSize: SIZES.fontLg, fontWeight: "600" },
-  emptyHint: { color: COLORS.textSecondary, fontSize: SIZES.fontSm },
-  card: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    padding: SIZES.lg,
-    marginBottom: SIZES.md,
-  },
-  cardHeader: { flexDirection: "row", alignItems: "flex-start", gap: SIZES.md, marginBottom: SIZES.md },
-  projectIconWrap: {
-    width: 38, height: 38, borderRadius: SIZES.radiusMd,
-    backgroundColor: `${COLORS.primary}22`, alignItems: "center", justifyContent: "center",
-  },
-  cardTitleWrap: { flex: 1 },
-  cardTitle: { color: COLORS.text, fontSize: SIZES.fontBase, fontWeight: "700" },
-  cardDesc: { color: COLORS.textSecondary, fontSize: SIZES.fontXs, marginTop: 2 },
-  statusPill: { paddingHorizontal: SIZES.sm, paddingVertical: 3, borderRadius: SIZES.radiusSm },
-  statusText: { fontSize: SIZES.fontXs, fontWeight: "700" },
-  statsRow: { flexDirection: "row", gap: SIZES.lg },
-  statItem: { flexDirection: "row", alignItems: "center", gap: 4 },
-  statText: { color: COLORS.textSecondary, fontSize: SIZES.fontXs },
-  archiveBtn: {
-    flexDirection: "row", alignItems: "center", gap: 4,
-    marginTop: SIZES.md, paddingTop: SIZES.md,
-    borderTopWidth: 1, borderTopColor: COLORS.inputBorder,
-  },
-  archiveBtnText: { color: COLORS.textSecondary, fontSize: SIZES.fontXs },
-  modalOverlay: {
-    flex: 1, backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "flex-end",
-  },
-  modalCard: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderTopLeftRadius: SIZES.radiusXl, borderTopRightRadius: SIZES.radiusXl,
-    padding: SIZES.xl, paddingBottom: SIZES.xxl,
-  },
-  modalHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: SIZES.lg },
-  modalTitle: { color: COLORS.text, fontSize: SIZES.fontLg, fontWeight: "700" },
-  inputLabel: { color: COLORS.textSecondary, fontSize: SIZES.fontSm, marginBottom: SIZES.sm },
-  input: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1, borderColor: COLORS.inputBorder,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md, color: COLORS.text, fontSize: SIZES.fontBase,
-    marginBottom: SIZES.md,
-  },
-  inputMulti: { height: 80, textAlignVertical: "top" },
-  submitBtn: {
-    backgroundColor: COLORS.primary, borderRadius: SIZES.radiusMd,
-    padding: SIZES.md, alignItems: "center", marginTop: SIZES.sm,
-  },
-  submitBtnText: { color: COLORS.white, fontSize: SIZES.fontBase, fontWeight: "700" },
-});
+

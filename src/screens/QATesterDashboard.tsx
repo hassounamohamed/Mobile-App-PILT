@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS, SIZES } from "@/constants";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { projectsService } from "@/services/projects";
 import { reportsService } from "@/services/reports";
 import { cahierTestsService } from "@/services/tests";
 import type { ProjetResponse } from "@/types/api";
-import { dashboardStyles as styles } from "@/components/dashboardStyles";
+import { useDashboardStyles } from "@/components/dashboardStyles";
 import { StatItem, asArray } from "@/utils/DashboardUtils";
 import {
   HeroCard,
@@ -14,10 +15,17 @@ import {
   StatCard,
   StatusBadge,
   EmptyState,
+  NotificationBell,
 } from "@/components/DashboardSharedComponents";
+import { useNotificationRealtime } from "@/hooks/use-notification-realtime";
+import { NotificationsModal } from "@/components/NotificationsModal";
 
 export default function QATesterDashboard() {
+  const styles = useDashboardStyles();
+  const c = useThemePalette();
   const insets = useSafeAreaInsets();
+  const { enabled, unreadCount } = useNotificationRealtime();
+  const [showNotifications, setShowNotifications] = useState(false);
   const [projects, setProjects] = useState<ProjetResponse[]>([]);
   const [qaStats, setQaStats] = useState({
     cahiers: 0,
@@ -80,7 +88,7 @@ export default function QATesterDashboard() {
       label: "Projets",
       value: String(projects.length),
       icon: "folder",
-      tone: COLORS.primary,
+      tone: c.primary,
     },
     {
       label: "Cahiers de tests",
@@ -111,10 +119,36 @@ export default function QATesterDashboard() {
             setRefreshing(true);
             load();
           }}
-          tintColor={COLORS.primary}
+          tintColor={c.primary}
         />
       }
     >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: SIZES.lg,
+        }}
+      >
+        <View>
+          <Text style={{ color: c.text, fontSize: SIZES.fontXl, fontWeight: "800" }}>
+            QA Tester
+          </Text>
+          <Text style={{ color: c.textSecondary, fontSize: SIZES.fontSm }}>
+            Dashboard
+          </Text>
+        </View>
+        <NotificationBell
+          enabled={enabled}
+          unreadCount={unreadCount}
+          onPress={() =>
+            enabled
+              ? setShowNotifications(true)
+              : Alert.alert("Notifications", "Notifications desactivees")
+          }
+        />
+      </View>
       <HeroCard
         eyebrow="QA Tester"
         title="Quality Dashboard"
@@ -122,7 +156,7 @@ export default function QATesterDashboard() {
       />
       {loading ? (
         <ActivityIndicator
-          color={COLORS.primary}
+          color={c.primary}
           style={{ marginVertical: SIZES.xl }}
         />
       ) : (
@@ -152,6 +186,10 @@ export default function QATesterDashboard() {
           ))
         )}
       </SectionCard>
+      <NotificationsModal
+        visible={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </ScrollView>
   );
 }

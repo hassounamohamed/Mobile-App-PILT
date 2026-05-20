@@ -1,8 +1,8 @@
-# 🔗 Intégration PILT - Guide Technique
+# 🔗 Intégration FlowPilot - Guide Technique
 
 ## Configuration Complétée ✅
 
-L'application mobile est maintenant **connectée au backend PILT**.
+L'application mobile est maintenant **connectée au backend FlowPilot**.
 
 ### URL Backend
 
@@ -16,7 +16,7 @@ http://127.0.0.1:8000  (Développement)
 
 #### Login
 
-**PILT utilise OAuth2PasswordRequestForm (form-urlencoded)**
+**FlowPilot utilise OAuth2PasswordRequestForm (form-urlencoded)**
 
 ```javascript
 // Incorrect (JSON):
@@ -33,7 +33,7 @@ username=user@example.com&password=password123
 
 #### Register
 
-**PILT utilise des noms en français**
+**FlowPilot utilise des noms en français**
 
 ```json
 {
@@ -56,7 +56,7 @@ Mapping des rôles:
 
 ### 2. Format des Réponses
 
-**PILT retourne**:
+**FlowPilot retourne**:
 
 ```json
 {
@@ -91,7 +91,7 @@ Mapping des rôles:
 }
 ```
 
-✅ **Adapté**: La méthode `transformPILTResponse()` convertit automatiquement.
+✅ **Adapté**: La méthode `transformFlowPilotResponse()` convertit automatiquement.
 
 ### 3. Endpoints Disponibles
 
@@ -108,7 +108,7 @@ GET    /auth/me                         Get Current User
 
 ### 4. Tokens
 
-**PILT utilise JWT avec durée de vie de 30 minutes**
+**FlowPilot utilise JWT avec durée de vie de 30 minutes**
 
 ```
 ACCESS_TOKEN_EXPIRE_MINUTES=30
@@ -129,19 +129,19 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 - Format login: OAuth2PasswordRequestForm (form-urlencoded)
 - Format register: Noms français + role_id
-- Transformation des réponses PILT → App format
+- Transformation des réponses FlowPilot → App format
 - Conversion automatique des rôles (string ↔ number)
 - Endpoints: request-reset-password au lieu de forgot-password
-- Removed: refreshToken() (PILT n'utilise pas)
+- Removed: refreshToken() (FlowPilot n'utilise pas)
 
 ### ✅ `src/types/auth.ts` (80 lignes)
 
 **Ajout:**
 
-- `PILTAuthResponse`: Response format du backend
-- `PILTRegisterRequest`: Request format register
-- `PILTTokenRole`: Role object du backend
-- `PILTSelectRoleRequest`: Select role request format
+- `FlowPilotAuthResponse`: Response format du backend
+- `FlowPilotRegisterRequest`: Request format register
+- `FlowPilotTokenRole`: Role object du backend
+- `FlowPilotSelectRoleRequest`: Select role request format
 - `MessageResponse`: Response générique (message)
 
 ### ✅ `.env` (20 lignes)
@@ -149,7 +149,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=30
 **Changements:**
 
 - `EXPO_PUBLIC_API_URL=http://127.0.0.1:8000`
-- Ajout des client IDs Google & GitHub (du backend PILT)
+- Ajout des client IDs Google & GitHub (du backend FlowPilot)
 - Commentaires informatifs
 
 ### ✅ `.env.example` (NEW)
@@ -212,7 +212,7 @@ App → POST /auth/request-reset-password
 Backend → 200 OK
 { message: "Email de réinitialisation envoyé" }
 
-PILT sends email with reset link
+FlowPilot sends email with reset link
 User clicks link → app receives token
 ```
 
@@ -260,7 +260,7 @@ Backend → Updated token with role
 
 ## Configuration Requise
 
-### Backend PILT
+### Backend FlowPilot
 
 - ✅ URL: http://127.0.0.1:8000
 - ✅ Database: PostgreSQL (Neon)
@@ -283,7 +283,7 @@ Backend → Updated token with role
 
    ```bash
    npm start
-   # Utiliser credentiel du backend PILT
+   # Utiliser credentiel du backend FlowPilot
    ```
 
 2. **Tester Register**
@@ -380,9 +380,9 @@ python -m uvicorn main:app --reload
 
 ---
 
-**✅ Intégration PILT Complétée!**
+**✅ Intégration FlowPilot Complétée!**
 
-L'application est maintenant prête à communiquer avec le backend PILT. Commencez par tester les endpoints dans l'ordre:
+L'application est maintenant prête à communiquer avec le backend FlowPilot. Commencez par tester les endpoints dans l'ordre:
 
 1. Login
 2. Register

@@ -14,7 +14,8 @@ export const useAuth = () => {
 
     // Methods
     login: useCallback(
-      (email: string, password: string) => auth.login(email, password),
+      (email: string, password: string, rememberMe: boolean) =>
+        auth.login(email, password, rememberMe),
       [auth],
     ),
     register: useCallback(

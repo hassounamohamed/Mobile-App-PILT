@@ -1,10 +1,12 @@
 import React from "react";
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { dashboardStyles as styles } from "./dashboardStyles";
-import { StatItem } from "./DashboardUtils";
+import { useDashboardStyles } from "./dashboardStyles";
+import type { StatItem } from "@/utils/DashboardUtils";
+import { useThemePalette } from "@/hooks/useThemePalette";
 
 export function StatCard({ item }: { item: StatItem }) {
+  const styles = useDashboardStyles();
   return (
     <View style={styles.statCard}>
       <View
@@ -27,6 +29,7 @@ export function HeroCard({
   title: string;
   subtitle: string;
 }) {
+  const styles = useDashboardStyles();
   return (
     <View style={styles.heroCard}>
       <Text style={styles.heroEyebrow}>{eyebrow}</Text>
@@ -43,6 +46,7 @@ export function SectionCard({
   title: string;
   children: React.ReactNode;
 }) {
+  const styles = useDashboardStyles();
   return (
     <View style={styles.sectionCard}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -52,6 +56,7 @@ export function SectionCard({
 }
 
 export function StatusBadge({ label, color }: { label: string; color: string }) {
+  const styles = useDashboardStyles();
   return (
     <View
       style={[
@@ -65,5 +70,60 @@ export function StatusBadge({ label, color }: { label: string; color: string }) 
 }
 
 export function EmptyState({ message }: { message: string }) {
+  const styles = useDashboardStyles();
   return <Text style={styles.emptyText}>{message}</Text>;
+}
+
+export function NotificationBell({
+  unreadCount,
+  enabled,
+  onPress,
+}: {
+  unreadCount: number;
+  enabled: boolean;
+  onPress: () => void;
+}) {
+  const c = useThemePalette();
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      style={{
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: c.backgroundSecondary,
+        borderWidth: 1,
+        borderColor: c.inputBorder,
+      }}
+      activeOpacity={0.8}
+    >
+      <Ionicons
+        name={enabled ? "notifications-outline" : "notifications-off-outline"}
+        size={20}
+        color={enabled ? c.text : c.textSecondary}
+      />
+      {enabled && unreadCount > 0 ? (
+        <View
+          style={{
+            position: "absolute",
+            top: 6,
+            right: 6,
+            minWidth: 16,
+            height: 16,
+            borderRadius: 8,
+            paddingHorizontal: 4,
+            backgroundColor: "#ef4444",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text style={{ color: "#fff", fontSize: 10, fontWeight: "700" }}>
+            {unreadCount}
+          </Text>
+        </View>
+      ) : null}
+    </TouchableOpacity>
+  );
 }

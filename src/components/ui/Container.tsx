@@ -1,20 +1,39 @@
-import { COLORS, SIZES } from "@/constants";
-import React from "react";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
+import React, { useMemo } from "react";
 import {
-    SafeAreaView,
-    ScrollView,
-    StyleProp,
-    StyleSheet,
-    View,
-    ViewStyle,
+  ScrollView,
+  StyleProp,
+  StyleSheet,
+  View,
+  ViewStyle,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import type { ThemePalette } from "@/constants/colors";
 
 interface ContainerProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   edges?: ("top" | "right" | "bottom" | "left")[];
   scrollable?: boolean;
+}
+
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: c.background,
+    },
+    container: {
+      flex: 1,
+    },
+    scroll: {
+      flex: 1,
+    },
+    scrollContent: {
+      flexGrow: 1,
+    },
+  });
 }
 
 export const Container = ({
@@ -24,6 +43,8 @@ export const Container = ({
   scrollable = false,
 }: ContainerProps) => {
   const insets = useSafeAreaInsets();
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
 
   const containerContent = (
     <View
@@ -68,19 +89,3 @@ export const Container = ({
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  container: {
-    flex: 1,
-  },
-  scroll: {
-    flex: 1,
-  },
-  scrollContent: {
-    flexGrow: 1,
-  },
-});

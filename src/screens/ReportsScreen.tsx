@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -14,7 +14,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { useAuthStore } from "@/context/authStore";
 import { projectsService } from "@/services/projects";
 import { reportsService } from "@/services/reports";
@@ -32,7 +34,175 @@ function asArray<T>(value: unknown): T[] {
   return [];
 }
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.background },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SIZES.lg,
+  },
+  pageTitle: { color: c.text, fontSize: SIZES.font2xl, fontWeight: "800" },
+  pageSubtitle: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    marginTop: 2,
+  },
+  createBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SIZES.sm,
+    backgroundColor: "#ec489966",
+    paddingHorizontal: SIZES.md,
+    paddingVertical: SIZES.sm,
+    borderRadius: SIZES.radiusMd,
+  },
+  createBtnText: {
+    color: "#ec4899",
+    fontSize: SIZES.fontSm,
+    fontWeight: "700",
+  },
+  projectPicker: { marginBottom: SIZES.md },
+  projectChip: {
+    paddingHorizontal: SIZES.md,
+    paddingVertical: SIZES.sm,
+    borderRadius: SIZES.radiusSm,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    backgroundColor: c.backgroundSecondary,
+    marginRight: SIZES.sm,
+  },
+  projectChipActive: {
+    backgroundColor: c.primary,
+    borderColor: c.primary,
+  },
+  projectChipText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+  },
+  projectChipTextActive: { color: c.white },
+  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
+  emptyText: { color: c.textSecondary, fontSize: SIZES.fontBase },
+  emptyHint: { color: c.textSecondary, fontSize: SIZES.fontSm },
+  reportCard: {
+    backgroundColor: c.backgroundSecondary,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    padding: SIZES.lg,
+    marginBottom: SIZES.md,
+  },
+  reportHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: SIZES.md,
+  },
+  reportTitleWrap: { flex: 1, marginRight: SIZES.sm },
+  reportTitle: {
+    color: c.text,
+    fontSize: SIZES.fontBase,
+    fontWeight: "700",
+  },
+  reportDate: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginTop: 2,
+  },
+  statusPill: {
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 3,
+    borderRadius: SIZES.radiusSm,
+  },
+  statusText: { fontSize: SIZES.fontXs, fontWeight: "700" },
+  scoreRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: SIZES.sm,
+  },
+  scoreLabel: { color: c.textSecondary, fontSize: SIZES.fontSm },
+  scoreValue: { fontSize: SIZES.fontBase, fontWeight: "800" },
+  progressBarBg: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: c.inputBorder,
+    marginBottom: SIZES.md,
+  },
+  progressBarFill: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: c.primary,
+  },
+  statsRow: { flexDirection: "row", gap: SIZES.lg, marginBottom: SIZES.sm },
+  statItem: { flexDirection: "row", alignItems: "center", gap: 6 },
+  statDot: { width: 8, height: 8, borderRadius: 4 },
+  statText: { color: c.textSecondary, fontSize: SIZES.fontXs },
+  recommandations: {
+    flexDirection: "row",
+    gap: SIZES.sm,
+    marginTop: SIZES.sm,
+    padding: SIZES.sm,
+    backgroundColor: "#f59e0b11",
+    borderRadius: SIZES.radiusSm,
+  },
+  recommandationsText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
+  },
+  modalCard: {
+    backgroundColor: c.backgroundSecondary,
+    borderTopLeftRadius: SIZES.radiusXl,
+    borderTopRightRadius: SIZES.radiusXl,
+    padding: SIZES.xl,
+    paddingBottom: SIZES.xxl,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SIZES.lg,
+  },
+  modalTitle: { color: c.text, fontSize: SIZES.fontLg, fontWeight: "700" },
+  inputLabel: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    marginBottom: SIZES.sm,
+  },
+  input: {
+    backgroundColor: c.background,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    color: c.text,
+    fontSize: SIZES.fontBase,
+    marginBottom: SIZES.md,
+  },
+  submitBtn: {
+    backgroundColor: "#ec489966",
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    alignItems: "center",
+  },
+  submitBtnText: {
+    color: "#ec4899",
+    fontSize: SIZES.fontBase,
+    fontWeight: "700",
+  },
+});
+}
+
 export default function ReportsScreen() {
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const isQA = user?.role === "Testeur QA";
@@ -109,7 +279,7 @@ export default function ReportsScreen() {
   }
 
   function scoreColor(score?: number) {
-    if (score === undefined) return COLORS.textSecondary;
+    if (score === undefined) return c.textSecondary;
     if (score >= 80) return "#22c55e";
     if (score >= 60) return "#f59e0b";
     return "#ef4444";
@@ -131,7 +301,7 @@ export default function ReportsScreen() {
               setRefreshing(true);
               loadProjects();
             }}
-            tintColor={COLORS.primary}
+            tintColor={c.primary}
           />
         }
       >
@@ -145,7 +315,7 @@ export default function ReportsScreen() {
               style={styles.createBtn}
               onPress={() => setShowCreate(true)}
             >
-              <Ionicons name="add" size={20} color={COLORS.white} />
+              <Ionicons name="add" size={20} color={c.white} />
               <Text style={styles.createBtnText}>Générer</Text>
             </TouchableOpacity>
           )}
@@ -153,7 +323,7 @@ export default function ReportsScreen() {
 
         {loadingProjects ? (
           <ActivityIndicator
-            color={COLORS.primary}
+            color={c.primary}
             style={{ marginTop: SIZES.xxl }}
           />
         ) : projects.length === 0 ? (
@@ -191,7 +361,7 @@ export default function ReportsScreen() {
 
             {loadingReports ? (
               <ActivityIndicator
-                color={COLORS.primary}
+                color={c.primary}
                 style={{ marginTop: SIZES.xl }}
               />
             ) : reports.length === 0 ? (
@@ -199,7 +369,7 @@ export default function ReportsScreen() {
                 <Ionicons
                   name="bar-chart-outline"
                   size={48}
-                  color={COLORS.textSecondary}
+                  color={c.textSecondary}
                 />
                 <Text style={styles.emptyText}>Aucun rapport QA</Text>
                 {isQA && (
@@ -334,7 +504,7 @@ export default function ReportsScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Générer un rapport QA</Text>
               <TouchableOpacity onPress={() => setShowCreate(false)}>
-                <Ionicons name="close" size={24} color={COLORS.textSecondary} />
+                <Ionicons name="close" size={24} color={c.textSecondary} />
               </TouchableOpacity>
             </View>
             <Text style={styles.inputLabel}>Titre du rapport *</Text>
@@ -343,7 +513,7 @@ export default function ReportsScreen() {
               value={newTitre}
               onChangeText={setNewTitre}
               placeholder="Rapport QA Sprint 1"
-              placeholderTextColor={COLORS.textSecondary}
+              placeholderTextColor={c.textSecondary}
             />
             <TouchableOpacity
               style={styles.submitBtn}
@@ -351,7 +521,7 @@ export default function ReportsScreen() {
               disabled={creating}
             >
               {creating ? (
-                <ActivityIndicator color={COLORS.white} size="small" />
+                <ActivityIndicator color={c.white} size="small" />
               ) : (
                 <Text style={styles.submitBtnText}>Générer</Text>
               )}
@@ -363,165 +533,4 @@ export default function ReportsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SIZES.lg,
-  },
-  pageTitle: { color: COLORS.text, fontSize: SIZES.font2xl, fontWeight: "800" },
-  pageSubtitle: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    marginTop: 2,
-  },
-  createBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SIZES.sm,
-    backgroundColor: "#ec489966",
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusMd,
-  },
-  createBtnText: {
-    color: "#ec4899",
-    fontSize: SIZES.fontSm,
-    fontWeight: "700",
-  },
-  projectPicker: { marginBottom: SIZES.md },
-  projectChip: {
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusSm,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    backgroundColor: COLORS.backgroundSecondary,
-    marginRight: SIZES.sm,
-  },
-  projectChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  projectChipText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-  },
-  projectChipTextActive: { color: COLORS.white },
-  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
-  emptyText: { color: COLORS.textSecondary, fontSize: SIZES.fontBase },
-  emptyHint: { color: COLORS.textSecondary, fontSize: SIZES.fontSm },
-  reportCard: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    padding: SIZES.lg,
-    marginBottom: SIZES.md,
-  },
-  reportHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: SIZES.md,
-  },
-  reportTitleWrap: { flex: 1, marginRight: SIZES.sm },
-  reportTitle: {
-    color: COLORS.text,
-    fontSize: SIZES.fontBase,
-    fontWeight: "700",
-  },
-  reportDate: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginTop: 2,
-  },
-  statusPill: {
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 3,
-    borderRadius: SIZES.radiusSm,
-  },
-  statusText: { fontSize: SIZES.fontXs, fontWeight: "700" },
-  scoreRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: SIZES.sm,
-  },
-  scoreLabel: { color: COLORS.textSecondary, fontSize: SIZES.fontSm },
-  scoreValue: { fontSize: SIZES.fontBase, fontWeight: "800" },
-  progressBarBg: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.inputBorder,
-    marginBottom: SIZES.md,
-  },
-  progressBarFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.primary,
-  },
-  statsRow: { flexDirection: "row", gap: SIZES.lg, marginBottom: SIZES.sm },
-  statItem: { flexDirection: "row", alignItems: "center", gap: 6 },
-  statDot: { width: 8, height: 8, borderRadius: 4 },
-  statText: { color: COLORS.textSecondary, fontSize: SIZES.fontXs },
-  recommandations: {
-    flexDirection: "row",
-    gap: SIZES.sm,
-    marginTop: SIZES.sm,
-    padding: SIZES.sm,
-    backgroundColor: "#f59e0b11",
-    borderRadius: SIZES.radiusSm,
-  },
-  recommandationsText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    flex: 1,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "flex-end",
-  },
-  modalCard: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderTopLeftRadius: SIZES.radiusXl,
-    borderTopRightRadius: SIZES.radiusXl,
-    padding: SIZES.xl,
-    paddingBottom: SIZES.xxl,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SIZES.lg,
-  },
-  modalTitle: { color: COLORS.text, fontSize: SIZES.fontLg, fontWeight: "700" },
-  inputLabel: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    marginBottom: SIZES.sm,
-  },
-  input: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    color: COLORS.text,
-    fontSize: SIZES.fontBase,
-    marginBottom: SIZES.md,
-  },
-  submitBtn: {
-    backgroundColor: "#ec489966",
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    alignItems: "center",
-  },
-  submitBtnText: {
-    color: "#ec4899",
-    fontSize: SIZES.fontBase,
-    fontWeight: "700",
-  },
-});
+

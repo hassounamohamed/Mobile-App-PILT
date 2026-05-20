@@ -1,8 +1,8 @@
-# 🧪 Guide de Test - Intégration PILT
+# 🧪 Guide de Test - Intégration FlowPilot
 
 ## Avant de Commencer
 
-✅ Backend PILT en cours d'exécution sur `http://127.0.0.1:8000`
+✅ Backend FlowPilot en cours d'exécution sur `http://127.0.0.1:8000`
 ✅ App mobile configurée avec `.env`
 ✅ Dépendances installées (`npm install`)
 
@@ -12,7 +12,7 @@
 
 ```bash
 # Terminal 1 - Backend
-cd C:\Users\kheli\OneDrive\Bureau\PILT\plateforme-back
+cd C:\Users\kheli\OneDrive\Bureau\FlowPilot\plateforme-back
 
 # Activer l'environnement virtuel (si nécessaire)
 .venv\Scripts\activate
@@ -117,7 +117,7 @@ curl -X POST http://127.0.0.1:8000/auth/login \
 **Vérification:**
 
 ```bash
-# Vérifier en base de données PILT
+# Vérifier en base de données FlowPilot
 # User devrait exister avec:
 # - email: newuser-...@example.com
 # - nom: Test User
@@ -159,7 +159,7 @@ curl -X POST http://127.0.0.1:8000/auth/register \
 
 - ✅ Message: "Email envoyé avec succès"
 - ✅ Affichage de l'écran de confirmation
-- ✅ Email reçu (vérifier inbox: contact.pilt1@gmail.com)
+- ✅ Email reçu (vérifier inbox: contact.FlowPilot1@gmail.com)
 
 **Vérification:**
 
@@ -169,9 +169,9 @@ curl -X POST http://127.0.0.1:8000/auth/register \
 # [INFO] Email sent to: test@example.com
 ```
 
-**Note:** L'email est envoyé via SMTP Gmail du backend PILT
+**Note:** L'email est envoyé via SMTP Gmail du backend FlowPilot
 
-- Email: contact.pilt1@gmail.com
+- Email: contact.FlowPilot1@gmail.com
 - Vérifier le spam si non reçu
 
 ---
@@ -455,7 +455,7 @@ async login(credentials: LoginCredentials): Promise<AuthResponse> {
     console.log('[DEBUG] Login attempt:', credentials.email);
     const response = await this.axiosInstance.post(...);
     console.log('[DEBUG] Login success:', response.data);
-    return this.transformPILTResponse(response.data);
+    return this.transformFlowPilotResponse(response.data);
   } catch (error) {
     console.error('[ERROR] Login failed:', error);
     throw this.handleError(error);
@@ -494,7 +494,7 @@ app.add_middleware(
 1. Vérifier les logs backend
 2. Vérifier la configuration .env
 3. Vérifier CORS dans le backend
-4. Contacter le support PILT
+4. Contacter le support FlowPilot
 
 ---
 

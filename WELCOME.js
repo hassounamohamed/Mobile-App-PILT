@@ -2,7 +2,7 @@
 
 /**
  * 🎉 MOBILE APP AUTHENTICATION SYSTEM
- * Pixel-Perfect PILT Platform Compatible
+ * Pixel-Perfect FlowPilot Platform Compatible
  *
  * This is a complete, production-ready authentication system
  * for React Native/Expo mobile applications.
@@ -93,7 +93,7 @@ $ npm run web      # Web Browser
    - Persistent authentication
 
 ✅ Beautiful Design
-   - Pixel-perfect PILT platform styling
+   - Pixel-perfect FlowPilot platform styling
    - Smooth animations
    - Dark theme with bright blue accents
    - Accessible colors & typography

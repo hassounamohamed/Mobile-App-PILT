@@ -10,7 +10,15 @@ type SprintApiResponse = {
   statut?: string | null;
   projet_id: number;
   velocite?: number;
-  userstories?: UserStoryResponse[];
+  userstories?: Array<
+    UserStoryResponse & {
+      developerId?: number | null;
+      assigneeId?: number | null;
+      testerId?: number | null;
+      priorite?: string | null;
+      statut?: string | null;
+    }
+  >;
 };
 
 type SprintVelociteApi = {
@@ -27,7 +35,42 @@ function normalizeSprintStatus(status?: string | null): SprintResponse["statut"]
   return "PLANIFIE";
 }
 
+function normalizeStoryStatus(status?: string | null): UserStoryResponse["statut"] {
+  const value = (status ?? "").toLowerCase();
+  if (value === "in_progress") return "EN_COURS";
+  if (value === "done") return "TERMINE";
+  return "A_FAIRE";
+}
+
+function normalizeStoryPriority(priority?: string | null): UserStoryResponse["priorite"] {
+  const value = (priority ?? "").toLowerCase();
+  if (value === "must_have") return "CRITIQUE";
+  if (value === "should_have") return "HAUTE";
+  if (value === "could_have") return "MOYENNE";
+  return "BASSE";
+}
+
+function normalizeSprintStory(
+  story: SprintApiResponse["userstories"][number],
+): UserStoryResponse {
+  const assigneeId = story.assigneeId ?? story.developerId ?? story.assignee?.id ?? undefined;
+  return {
+    id: story.id,
+    titre: story.titre,
+    description: story.description ?? undefined,
+    priorite: normalizeStoryPriority(story.priorite),
+    statut: normalizeStoryStatus(story.statut),
+    points: story.points ?? undefined,
+    module_id: story.module_id ?? undefined,
+    epic_id: story.epic_id ?? undefined,
+    assignee: story.assignee ?? undefined,
+    assignee_id: assigneeId,
+    testeur_id: story.testerId ?? undefined,
+  };
+}
+
 function normalizeSprint(item: SprintApiResponse): SprintResponse {
+  const userStories = (item.userstories ?? []).map(normalizeSprintStory);
   return {
     id: item.id,
     nom: item.nom,
@@ -36,9 +79,9 @@ function normalizeSprint(item: SprintApiResponse): SprintResponse {
     date_fin: item.dateFin ?? undefined,
     statut: normalizeSprintStatus(item.statut),
     projet_id: item.projet_id,
-    nb_user_stories: item.userstories?.length ?? 0,
+    nb_user_stories: userStories.length,
     velocite: item.velocite ?? 0,
-    user_stories: item.userstories,
+    user_stories: userStories,
   };
 }
 

@@ -1,25 +1,40 @@
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS, SIZES } from "@/constants";
+import {
+    EmptyState,
+    HeroCard,
+    NotificationBell,
+    SectionCard,
+    StatCard,
+} from "@/components/DashboardSharedComponents";
+import { NotificationsModal } from "@/components/NotificationsModal";
+import { useDashboardStyles } from "@/components/dashboardStyles";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
+import { useNotificationRealtime } from "@/hooks/use-notification-realtime";
 import { logsService } from "@/services/logs";
 import { rolesService, usersService } from "@/services/users";
-import { dashboardStyles as styles } from "@/components/dashboardStyles";
-import {
-  StatItem,
-  asArray,
-  normalizeDashboardActivity,
-} from "@/utils/DashboardUtils";
-import {
-  HeroCard,
-  SectionCard,
-  StatCard,
-  EmptyState,
-} from "@/components/DashboardSharedComponents";
 import type { DashboardActivity } from "@/types/api";
+import {
+    StatItem,
+    asArray,
+    normalizeDashboardActivity,
+} from "@/utils/DashboardUtils";
+import React, { useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    Alert,
+    RefreshControl,
+    ScrollView,
+    Text,
+    View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function SuperAdminDashboard() {
+  const styles = useDashboardStyles();
+  const c = useThemePalette();
   const insets = useSafeAreaInsets();
+  const { enabled, unreadCount } = useNotificationRealtime();
+  const [showNotifications, setShowNotifications] = useState(false);
   const [stats, setStats] = useState({
     users: "—",
     roles: "—",
@@ -89,7 +104,7 @@ export default function SuperAdminDashboard() {
       label: "Utilisateurs",
       value: stats.users,
       icon: "people",
-      tone: COLORS.primary,
+      tone: c.primary,
     },
     {
       label: "Rôles",
@@ -126,18 +141,50 @@ export default function SuperAdminDashboard() {
             setRefreshing(true);
             load();
           }}
-          tintColor={COLORS.primary}
+          tintColor={c.primary}
         />
       }
     >
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: SIZES.lg,
+        }}
+      >
+        <View>
+          <Text
+            style={{
+              color: c.text,
+              fontSize: SIZES.fontXl,
+              fontWeight: "800",
+            }}
+          >
+            Super Admin
+          </Text>
+          <Text style={{ color: c.textSecondary, fontSize: SIZES.fontSm }}>
+            Dashboard
+          </Text>
+        </View>
+        <NotificationBell
+          enabled={enabled}
+          unreadCount={unreadCount}
+          onPress={() =>
+            enabled
+              ? setShowNotifications(true)
+              : Alert.alert("Notifications", "Notifications desactivees")
+          }
+        />
+      </View>
       <HeroCard
         eyebrow="Super Admin"
         title="Tableau de bord plateforme"
-        subtitle="Vue globale des utilisateurs, rôles, activité et état de la plateforme PILT."
+        subtitle="Vue globale des utilisateurs, rôles, activité et état de la plateforme FlowPilot."
       />
       {loading ? (
         <ActivityIndicator
-          color={COLORS.primary}
+          color={c.primary}
           style={{ marginVertical: SIZES.xl }}
         />
       ) : (
@@ -193,6 +240,10 @@ export default function SuperAdminDashboard() {
           })
         )}
       </SectionCard>
+      <NotificationsModal
+        visible={showNotifications}
+        onClose={() => setShowNotifications(false)}
+      />
     </ScrollView>
   );
 }

@@ -1,11 +1,11 @@
-# 🚀 Démarrage Rapide - PILT Integration
+# 🚀 Démarrage Rapide - FlowPilot Integration
 
 ## ⏱️ 5 Minutes pour Commencer
 
-### Étape 1: Démarrer le Backend PILT (2 min)
+### Étape 1: Démarrer le Backend FlowPilot (2 min)
 
 ```bash
-cd C:\Users\kheli\OneDrive\Bureau\PILT\plateforme-back
+cd C:\Users\kheli\OneDrive\Bureau\FlowPilot\plateforme-back
 
 # Activer l'environnement virtuel
 .venv\Scripts\activate
@@ -66,14 +66,14 @@ npm start
 ```
 mobile-app/
 ├── src/features/auth/
-│   ├── api.ts              ← Intégration PILT ✅
+│   ├── api.ts              ← Intégration FlowPilot ✅
 │   ├── store.ts            ← État global
 │   ├── hooks.ts            ← Custom hooks
 │   └── screens/            ← 4 écrans auth
 │
 ├── .env                    ← Configuration
 ├── .env.example            ← Template
-└── PILT_INTEGRATION.md     ← Doc technique
+└── FlowPilot_INTEGRATION.md     ← Doc technique
 ```
 
 ---
@@ -152,7 +152,7 @@ curl -X POST http://127.0.0.1:8000/auth/register \
 
 **Cause:** Backend n'accepte pas les requêtes de l'app
 
-**Solution:** Vérifier que le backend a CORS configuré (normalement ok dans PILT)
+**Solution:** Vérifier que le backend a CORS configuré (normalement ok dans FlowPilot)
 
 ### ❌ "Invalid Content-Type"
 
@@ -175,7 +175,7 @@ npm start
 
 ## 📚 Documentation Complète
 
-- **[PILT_INTEGRATION.md](./PILT_INTEGRATION.md)** - Guide technique détaillé
+- **[FlowPilot_INTEGRATION.md](./FlowPilot_INTEGRATION.md)** - Guide technique détaillé
 - **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** - Tests fonctionnels
 - **[AUTH_ARCHITECTURE.md](./AUTH_ARCHITECTURE.md)** - Architecture système
 - **[SETUP.md](./SETUP.md)** - Configuration complète
@@ -212,7 +212,7 @@ npm run android
 
 ## ✅ Checklist Avant de Commencer
 
-- [ ] Backend PILT démarré (http://127.0.0.1:8000)
+- [ ] Backend FlowPilot démarré (http://127.0.0.1:8000)
 - [ ] `.env` configuré avec `EXPO_PUBLIC_API_URL`
 - [ ] `npm install` exécuté
 - [ ] `npm start` fonctionne
@@ -223,7 +223,7 @@ npm run android
 
 ## 🎯 Prochain Objectif
 
-**Intégrer un autre endpoint PILT** (ex: `/projets`)
+**Intégrer un autre endpoint FlowPilot** (ex: `/projets`)
 
 ```javascript
 // Dans src/features/api.ts (nouveau fichier)
@@ -263,4 +263,4 @@ export const projectsApi = {
 
 **Vous êtes maintenant prêt! 🎉**
 
-Ouvrez [PILT_INTEGRATION.md](./PILT_INTEGRATION.md) pour plus de détails techniques.
+Ouvrez [FlowPilot_INTEGRATION.md](./FlowPilot_INTEGRATION.md) pour plus de détails techniques.

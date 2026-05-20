@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -12,7 +12,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { projectsService } from "@/services/projects";
 import { ProjetResponse, UtilisateurResponse } from "@/types/api";
 
@@ -28,8 +30,68 @@ function getInitials(name: string) {
   return name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase();
 }
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+    root: { flex: 1, backgroundColor: c.background },
+    header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: SIZES.lg },
+    pageTitle: { color: c.text, fontSize: SIZES.font2xl, fontWeight: "800" },
+    pageSubtitle: { color: c.textSecondary, fontSize: SIZES.fontSm, marginTop: 2 },
+    addBtn: {
+      flexDirection: "row", alignItems: "center", gap: SIZES.sm,
+      backgroundColor: c.primary, paddingHorizontal: SIZES.md, paddingVertical: SIZES.sm,
+      borderRadius: SIZES.radiusMd,
+    },
+    addBtnText: { color: c.white, fontSize: SIZES.fontSm, fontWeight: "700" },
+    projectPicker: { marginBottom: SIZES.md },
+    projectChip: {
+      paddingHorizontal: SIZES.md, paddingVertical: SIZES.sm,
+      borderRadius: SIZES.radiusSm, borderWidth: 1, borderColor: c.inputBorder,
+      backgroundColor: c.backgroundSecondary, marginRight: SIZES.sm,
+    },
+    projectChipActive: { backgroundColor: c.primary, borderColor: c.primary },
+    projectChipText: { color: c.textSecondary, fontSize: SIZES.fontSm, fontWeight: "600" },
+    projectChipTextActive: { color: c.white },
+    emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
+    emptyText: { color: c.textSecondary, fontSize: SIZES.fontBase },
+    memberCard: {
+      flexDirection: "row", alignItems: "center",
+      backgroundColor: c.backgroundSecondary,
+      borderRadius: SIZES.radiusLg, borderWidth: 1, borderColor: c.inputBorder,
+      padding: SIZES.md, marginBottom: SIZES.sm,
+    },
+    avatar: {
+      width: 44, height: 44, borderRadius: SIZES.radiusRound,
+      alignItems: "center", justifyContent: "center", marginRight: SIZES.md,
+    },
+    avatarText: { fontSize: SIZES.fontSm, fontWeight: "700" },
+    memberInfo: { flex: 1 },
+    memberName: { color: c.text, fontSize: SIZES.fontBase, fontWeight: "600" },
+    memberEmail: { color: c.textSecondary, fontSize: SIZES.fontXs, marginTop: 2 },
+    rolePill: { paddingHorizontal: SIZES.sm, paddingVertical: 3, borderRadius: SIZES.radiusSm },
+    roleText: { fontSize: SIZES.fontXs, fontWeight: "600" },
+    addPanel: {
+      backgroundColor: c.backgroundSecondary,
+      borderRadius: SIZES.radiusXl, borderWidth: 1, borderColor: c.inputBorder,
+      padding: SIZES.lg, marginTop: SIZES.md,
+    },
+    addPanelHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: SIZES.md },
+    addPanelTitle: { color: c.text, fontSize: SIZES.fontBase, fontWeight: "700" },
+    availableMember: {
+      flexDirection: "row", alignItems: "center",
+      paddingVertical: SIZES.sm, borderBottomWidth: 1, borderBottomColor: c.inputBorder,
+    },
+    avatarSm: {
+      width: 36, height: 36, borderRadius: SIZES.radiusRound,
+      alignItems: "center", justifyContent: "center", marginRight: SIZES.md,
+    },
+    avatarSmText: { fontSize: SIZES.fontXs, fontWeight: "700" },
+  });
+}
+
 export default function TeamScreen() {
   const insets = useSafeAreaInsets();
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
   const [projects, setProjects] = useState<ProjetResponse[]>([]);
   const [selectedProject, setSelectedProject] = useState<ProjetResponse | null>(null);
   const [members, setMembers] = useState<UtilisateurResponse[]>([]);
@@ -105,7 +167,7 @@ export default function TeamScreen() {
         }}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadProjects(); }} tintColor={COLORS.primary} />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadProjects(); }} tintColor={c.primary} />
         }
       >
         <View style={styles.header}>
@@ -115,14 +177,14 @@ export default function TeamScreen() {
           </View>
           {selectedProject && (
             <TouchableOpacity style={styles.addBtn} onPress={openAddPanel}>
-              <Ionicons name="person-add-outline" size={18} color={COLORS.white} />
+              <Ionicons name="person-add-outline" size={18} color={c.white} />
               <Text style={styles.addBtnText}>Ajouter</Text>
             </TouchableOpacity>
           )}
         </View>
 
         {loadingProjects ? (
-          <ActivityIndicator color={COLORS.primary} style={{ marginTop: SIZES.xxl }} />
+          <ActivityIndicator color={c.primary} style={{ marginTop: SIZES.xxl }} />
         ) : projects.length === 0 ? (
           <View style={styles.emptyWrap}>
             <Text style={styles.emptyText}>Aucun projet</Text>
@@ -145,12 +207,12 @@ export default function TeamScreen() {
 
             {members.length === 0 ? (
               <View style={styles.emptyWrap}>
-                <Ionicons name="people-outline" size={48} color={COLORS.textSecondary} />
+                <Ionicons name="people-outline" size={48} color={c.textSecondary} />
                 <Text style={styles.emptyText}>Aucun membre assigné</Text>
               </View>
             ) : (
               members.map((m) => {
-                const rc = ROLE_COLORS[m.role?.code ?? ""] ?? COLORS.textSecondary;
+                const rc = ROLE_COLORS[m.role?.code ?? ""] ?? c.textSecondary;
                 return (
                   <View key={m.id} style={styles.memberCard}>
                     <View style={[styles.avatar, { backgroundColor: `${rc}33` }]}>
@@ -175,14 +237,14 @@ export default function TeamScreen() {
                 <View style={styles.addPanelHeader}>
                   <Text style={styles.addPanelTitle}>Ajouter un membre</Text>
                   <TouchableOpacity onPress={() => setShowAddPanel(false)}>
-                    <Ionicons name="close" size={20} color={COLORS.textSecondary} />
+                    <Ionicons name="close" size={20} color={c.textSecondary} />
                   </TouchableOpacity>
                 </View>
                 {notInProject.length === 0 ? (
                   <Text style={styles.emptyText}>Tous les membres sont déjà dans le projet</Text>
                 ) : (
                   notInProject.map((m) => {
-                    const rc = ROLE_COLORS[m.role?.code ?? ""] ?? COLORS.textSecondary;
+                    const rc = ROLE_COLORS[m.role?.code ?? ""] ?? c.textSecondary;
                     return (
                       <TouchableOpacity
                         key={m.id}
@@ -197,7 +259,7 @@ export default function TeamScreen() {
                           <Text style={styles.memberName}>{m.nom}</Text>
                           <Text style={styles.memberEmail}>{m.role?.nom ?? ""}</Text>
                         </View>
-                        <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
+                        <Ionicons name="add-circle-outline" size={20} color={c.primary} />
                       </TouchableOpacity>
                     );
                   })
@@ -210,59 +272,3 @@ export default function TeamScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
-  header: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: SIZES.lg },
-  pageTitle: { color: COLORS.text, fontSize: SIZES.font2xl, fontWeight: "800" },
-  pageSubtitle: { color: COLORS.textSecondary, fontSize: SIZES.fontSm, marginTop: 2 },
-  addBtn: {
-    flexDirection: "row", alignItems: "center", gap: SIZES.sm,
-    backgroundColor: COLORS.primary, paddingHorizontal: SIZES.md, paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusMd,
-  },
-  addBtnText: { color: COLORS.white, fontSize: SIZES.fontSm, fontWeight: "700" },
-  projectPicker: { marginBottom: SIZES.md },
-  projectChip: {
-    paddingHorizontal: SIZES.md, paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusSm, borderWidth: 1, borderColor: COLORS.inputBorder,
-    backgroundColor: COLORS.backgroundSecondary, marginRight: SIZES.sm,
-  },
-  projectChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  projectChipText: { color: COLORS.textSecondary, fontSize: SIZES.fontSm, fontWeight: "600" },
-  projectChipTextActive: { color: COLORS.white },
-  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
-  emptyText: { color: COLORS.textSecondary, fontSize: SIZES.fontBase },
-  memberCard: {
-    flexDirection: "row", alignItems: "center",
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusLg, borderWidth: 1, borderColor: COLORS.inputBorder,
-    padding: SIZES.md, marginBottom: SIZES.sm,
-  },
-  avatar: {
-    width: 44, height: 44, borderRadius: SIZES.radiusRound,
-    alignItems: "center", justifyContent: "center", marginRight: SIZES.md,
-  },
-  avatarText: { fontSize: SIZES.fontSm, fontWeight: "700" },
-  memberInfo: { flex: 1 },
-  memberName: { color: COLORS.text, fontSize: SIZES.fontBase, fontWeight: "600" },
-  memberEmail: { color: COLORS.textSecondary, fontSize: SIZES.fontXs, marginTop: 2 },
-  rolePill: { paddingHorizontal: SIZES.sm, paddingVertical: 3, borderRadius: SIZES.radiusSm },
-  roleText: { fontSize: SIZES.fontXs, fontWeight: "600" },
-  addPanel: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusXl, borderWidth: 1, borderColor: COLORS.inputBorder,
-    padding: SIZES.lg, marginTop: SIZES.md,
-  },
-  addPanelHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: SIZES.md },
-  addPanelTitle: { color: COLORS.text, fontSize: SIZES.fontBase, fontWeight: "700" },
-  availableMember: {
-    flexDirection: "row", alignItems: "center",
-    paddingVertical: SIZES.sm, borderBottomWidth: 1, borderBottomColor: COLORS.inputBorder,
-  },
-  avatarSm: {
-    width: 36, height: 36, borderRadius: SIZES.radiusRound,
-    alignItems: "center", justifyContent: "center", marginRight: SIZES.md,
-  },
-  avatarSmText: { fontSize: SIZES.fontXs, fontWeight: "700" },
-});

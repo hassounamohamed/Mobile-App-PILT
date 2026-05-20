@@ -1,5 +1,6 @@
 import { AuthState, User } from "@/types/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { authApi } from "@/services/auth";
@@ -15,9 +16,11 @@ interface AuthStore extends AuthState {
   setRefreshToken: (refreshToken: string | null) => void;
   setLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
+  setRememberMe: (rememberMe: boolean) => void;
+  hydrateTokensFromSecureStore: () => Promise<void>;
 
   // Async actions
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, rememberMe: boolean) => Promise<void>;
   register: (
     fullName: string,
     email: string,
@@ -41,10 +44,33 @@ const initialState: AuthState = {
   user: null,
   token: null,
   refreshToken: null,
+  rememberMe: false,
   isLoading: false,
   error: null,
   isAuthenticated: false,
 };
+
+const TOKEN_KEY = "auth-token";
+const REFRESH_TOKEN_KEY = "auth-refresh-token";
+
+async function persistSecureTokens(
+  rememberMe: boolean,
+  token: string | null,
+  refreshToken: string | null,
+) {
+  if (rememberMe && token) {
+    await SecureStore.setItemAsync(TOKEN_KEY, token);
+    if (refreshToken) {
+      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+    } else {
+      await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    }
+    return;
+  }
+
+  await SecureStore.deleteItemAsync(TOKEN_KEY);
+  await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+}
 
 
 export const useAuthStore = create<AuthStore>()(
@@ -62,10 +88,28 @@ export const useAuthStore = create<AuthStore>()(
       setRefreshToken: (refreshToken) => set({ refreshToken }),
       setLoading: (isLoading) => set({ isLoading }),
       setError: (error) => set({ error }),
+      setRememberMe: (rememberMe) => set({ rememberMe }),
+      hydrateTokensFromSecureStore: async () => {
+        const { rememberMe, user } = get();
+        if (!rememberMe) return;
+        const [token, refreshToken] = await Promise.all([
+          SecureStore.getItemAsync(TOKEN_KEY),
+          SecureStore.getItemAsync(REFRESH_TOKEN_KEY),
+        ]);
+
+        if (token) {
+          authApi.setAuthToken(token);
+          set({
+            token,
+            refreshToken: refreshToken ?? null,
+            isAuthenticated: !!user,
+          });
+        }
+      },
 
       // Async login
-      login: async (email, password) => {
-        set({ isLoading: true, error: null });
+      login: async (email, password, rememberMe) => {
+        set({ isLoading: true, error: null, rememberMe });
         try {
           const response = await authApi.login({ email, password });
           authApi.setAuthToken(response.token);
@@ -76,6 +120,11 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
+          await persistSecureTokens(
+            rememberMe,
+            response.token,
+            response.refreshToken,
+          );
         } catch (error) {
           const errorMessage =
             error instanceof Error ? error.message : "Erreur de connexion";
@@ -122,6 +171,7 @@ export const useAuthStore = create<AuthStore>()(
       // Logout
       logout: () => {
         authApi.clearAuthToken();
+        void persistSecureTokens(false, null, null);
         set(initialState);
       },
 
@@ -176,6 +226,11 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
+          await persistSecureTokens(
+            get().rememberMe,
+            response.token,
+            response.refreshToken,
+          );
         } catch (error) {
           const errorMessage =
             error instanceof Error ? error.message : "Erreur Google";
@@ -201,6 +256,11 @@ export const useAuthStore = create<AuthStore>()(
             isAuthenticated: true,
             isLoading: false,
           });
+          await persistSecureTokens(
+            get().rememberMe,
+            response.token,
+            response.refreshToken,
+          );
         } catch (error) {
           const errorMessage =
             error instanceof Error ? error.message : "Erreur GitHub";
@@ -228,6 +288,11 @@ export const useAuthStore = create<AuthStore>()(
             token: response.token,
             refreshToken: response.refreshToken,
           });
+          await persistSecureTokens(
+            get().rememberMe,
+            response.token,
+            response.refreshToken,
+          );
         } catch (error) {
           set({ isAuthenticated: false });
           authApi.clearAuthToken();
@@ -243,11 +308,18 @@ export const useAuthStore = create<AuthStore>()(
       name: "auth-storage",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
-        user: state.user,
-        token: state.token,
-        refreshToken: state.refreshToken,
-        isAuthenticated: state.isAuthenticated,
+        rememberMe: state.rememberMe,
+        ...(state.rememberMe
+          ? {
+              user: state.user,
+              isAuthenticated: state.isAuthenticated,
+            }
+          : {}),
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state) return;
+        void state.hydrateTokensFromSecureStore();
+      },
     },
   ),
 );

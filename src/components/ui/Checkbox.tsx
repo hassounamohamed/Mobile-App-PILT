@@ -1,6 +1,8 @@
-import { COLORS, SIZES } from "@/constants";
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
+import React, { useMemo } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import type { ThemePalette } from "@/constants/colors";
 
 interface CheckboxProps {
   value: boolean;
@@ -8,7 +10,43 @@ interface CheckboxProps {
   label?: string;
 }
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginVertical: SIZES.md,
+    },
+    checkbox: {
+      width: 20,
+      height: 20,
+      borderRadius: SIZES.radiusSm,
+      borderWidth: 2,
+      borderColor: c.inputBorder,
+      justifyContent: "center",
+      alignItems: "center",
+      marginRight: SIZES.sm,
+    },
+    checkboxChecked: {
+      backgroundColor: c.primary,
+      borderColor: c.primary,
+    },
+    checkmark: {
+      color: c.white,
+      fontSize: SIZES.fontBase,
+      fontWeight: "bold",
+    },
+    label: {
+      color: c.text,
+      fontSize: SIZES.fontSm,
+      fontWeight: "500",
+    },
+  });
+}
+
 export const Checkbox = ({ value, onPress, label }: CheckboxProps) => {
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
   return (
     <View style={styles.container}>
       <TouchableOpacity
@@ -21,37 +59,3 @@ export const Checkbox = ({ value, onPress, label }: CheckboxProps) => {
     </View>
   );
 };
-
-import { TouchableOpacity } from "react-native";
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: SIZES.md,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: SIZES.radiusSm,
-    borderWidth: 2,
-    borderColor: COLORS.inputBorder,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: SIZES.sm,
-  },
-  checkboxChecked: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  checkmark: {
-    color: COLORS.white,
-    fontSize: SIZES.fontBase,
-    fontWeight: "bold",
-  },
-  label: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "500",
-  },
-});

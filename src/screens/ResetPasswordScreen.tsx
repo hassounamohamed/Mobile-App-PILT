@@ -1,17 +1,35 @@
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { TextInputField } from "@/components/ui/TextInputField";
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
 import { useAuth } from "@/hooks/useAuth";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { AuthStackParamList } from "@/navigation/types";
 import { Ionicons } from "@expo/vector-icons";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type ResetPasswordRouteProp = RouteProp<AuthStackParamList, "ResetPassword">;
+
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: c.background },
+    scrollContent: { flexGrow: 1, paddingHorizontal: SIZES.lg, paddingVertical: SIZES.xl },
+    header: { alignItems: "center", marginBottom: SIZES.xl },
+    title: { marginTop: SIZES.md, fontSize: SIZES.fontXl, fontWeight: "700", color: c.text },
+    form: { gap: SIZES.md },
+    errorCard: { borderColor: c.error, backgroundColor: c.background, marginBottom: SIZES.md },
+    errorText: { color: c.error },
+    successCard: { borderColor: c.success, backgroundColor: c.background, marginBottom: SIZES.md },
+    successText: { color: c.success, fontWeight: "600" },
+    backLink: { marginTop: SIZES.xl, alignItems: "center" },
+    backText: { color: c.primary, fontWeight: "600" },
+  });
+}
 
 export const ResetPasswordScreen = () => {
   const route = useRoute<ResetPasswordRouteProp>();
@@ -19,6 +37,8 @@ export const ResetPasswordScreen = () => {
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const insets = useSafeAreaInsets();
   const { resetPassword, isLoading, error, clearError } = useAuth();
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
 
   const [token, setToken] = useState(route.params?.token ?? "");
   const [newPassword, setNewPassword] = useState("");
@@ -67,7 +87,7 @@ export const ResetPasswordScreen = () => {
     >
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Ionicons name="key-outline" size={SIZES.iconXl} color={COLORS.primary} />
+          <Ionicons name="key-outline" size={SIZES.iconXl} color={c.primary} />
           <Text style={styles.title}>Reinitialiser le mot de passe</Text>
         </View>
 
@@ -131,17 +151,3 @@ export const ResetPasswordScreen = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: COLORS.background },
-  scrollContent: { flexGrow: 1, paddingHorizontal: SIZES.lg, paddingVertical: SIZES.xl },
-  header: { alignItems: "center", marginBottom: SIZES.xl },
-  title: { marginTop: SIZES.md, fontSize: SIZES.fontXl, fontWeight: "700", color: COLORS.text },
-  form: { gap: SIZES.md },
-  errorCard: { borderColor: COLORS.error, backgroundColor: COLORS.background, marginBottom: SIZES.md },
-  errorText: { color: COLORS.error },
-  successCard: { borderColor: COLORS.success, backgroundColor: COLORS.background, marginBottom: SIZES.md },
-  successText: { color: COLORS.success, fontWeight: "600" },
-  backLink: { marginTop: SIZES.xl, alignItems: "center" },
-  backText: { color: COLORS.primary, fontWeight: "600" },
-});

@@ -1,15 +1,17 @@
-import { COLORS, SIZES } from "@/constants";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
-    StyleProp,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-    ViewStyle,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  ViewStyle,
 } from "react-native";
+import type { ThemePalette } from "@/constants/colors";
 
 interface TextInputFieldProps {
   label?: string;
@@ -24,6 +26,60 @@ interface TextInputFieldProps {
   icon?: string;
 }
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      marginBottom: SIZES.lg,
+    },
+    label: {
+      color: c.text,
+      fontSize: SIZES.fontSm,
+      fontWeight: "600",
+      marginBottom: SIZES.sm,
+      letterSpacing: 0.3,
+    },
+    inputWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      height: SIZES.inputHeight,
+      backgroundColor: c.inputBackground,
+      borderRadius: SIZES.radiusLg,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+      paddingHorizontal: SIZES.md,
+    },
+    inputWrapperFocused: {
+      borderColor: c.inputBorderFocused,
+      backgroundColor: c.backgroundSecondary,
+    },
+    inputWrapperError: {
+      borderColor: c.error,
+    },
+    icon: {
+      marginRight: SIZES.sm,
+    },
+    input: {
+      flex: 1,
+      color: c.text,
+      fontSize: SIZES.fontBase,
+      fontWeight: "400",
+    },
+    inputWithIcon: {
+      marginLeft: 0,
+    },
+    iconButton: {
+      padding: SIZES.sm,
+      marginLeft: SIZES.sm,
+    },
+    errorText: {
+      color: c.error,
+      fontSize: SIZES.fontSm,
+      marginTop: SIZES.sm,
+      fontWeight: "500",
+    },
+  });
+}
+
 export const TextInputField = ({
   label,
   placeholder,
@@ -36,6 +92,8 @@ export const TextInputField = ({
   style,
   icon,
 }: TextInputFieldProps) => {
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
   const [isFocused, setIsFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(!secureTextEntry);
 
@@ -53,14 +111,14 @@ export const TextInputField = ({
           <Ionicons
             name={icon as any}
             size={SIZES.iconMd}
-            color={isFocused ? COLORS.primary : COLORS.textSecondary}
+            color={isFocused ? c.primary : c.textSecondary}
             style={styles.icon}
           />
         )}
         <TextInput
           style={[styles.input, icon && styles.inputWithIcon]}
           placeholder={placeholder}
-          placeholderTextColor={COLORS.textSecondary}
+          placeholderTextColor={c.textSecondary}
           value={value}
           onChangeText={onChangeText}
           secureTextEntry={secureTextEntry && !showPassword}
@@ -77,7 +135,7 @@ export const TextInputField = ({
             <Ionicons
               name={showPassword ? "eye-outline" : "eye-off-outline"}
               size={SIZES.iconMd}
-              color={COLORS.textSecondary}
+              color={c.textSecondary}
             />
           </TouchableOpacity>
         )}
@@ -86,56 +144,3 @@ export const TextInputField = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: SIZES.lg,
-  },
-  label: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-    marginBottom: SIZES.sm,
-    letterSpacing: 0.3,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    height: SIZES.inputHeight,
-    backgroundColor: COLORS.inputBackground,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    paddingHorizontal: SIZES.md,
-    transitionDuration: "200ms",
-  },
-  inputWrapperFocused: {
-    borderColor: COLORS.inputBorderFocused,
-    backgroundColor: COLORS.backgroundSecondary,
-  },
-  inputWrapperError: {
-    borderColor: COLORS.error,
-  },
-  icon: {
-    marginRight: SIZES.sm,
-  },
-  input: {
-    flex: 1,
-    color: COLORS.text,
-    fontSize: SIZES.fontBase,
-    fontWeight: "400",
-  },
-  inputWithIcon: {
-    marginLeft: 0,
-  },
-  iconButton: {
-    padding: SIZES.sm,
-    marginLeft: SIZES.sm,
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: SIZES.fontSm,
-    marginTop: SIZES.sm,
-    fontWeight: "500",
-  },
-});

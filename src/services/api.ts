@@ -1,12 +1,15 @@
 import { useAuthStore } from "@/context/authStore";
+import { getApiBaseUrl } from "@/config/apiBaseUrl";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import axios, { AxiosInstance } from "axios";
 import { Alert } from "react-native";
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || "http://127.0.0.1:8000";
+const API_BASE_URL = getApiBaseUrl();
 
 let sessionExpiredAlertShown = false;
 let lastSeenToken: string | null = null;
+const TOKEN_KEY = "auth-token";
 
 function createApiClient(): AxiosInstance {
   const instance = axios.create({
@@ -17,21 +20,19 @@ function createApiClient(): AxiosInstance {
 
   instance.interceptors.request.use(async (config) => {
     try {
-      const stored = await AsyncStorage.getItem("auth-storage");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const token = parsed?.state?.token;
+      let token = useAuthStore.getState().token;
 
-        if (token !== lastSeenToken) {
-          lastSeenToken = token ?? null;
-          sessionExpiredAlertShown = false;
-        }
+      if (!token) {
+        token = await SecureStore.getItemAsync(TOKEN_KEY);
+      }
 
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-      } else {
-        lastSeenToken = null;
+      if (token !== lastSeenToken) {
+        lastSeenToken = token ?? null;
+        sessionExpiredAlertShown = false;
+      }
+
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
       }
     } catch {}
     return config;
@@ -43,17 +44,24 @@ function createApiClient(): AxiosInstance {
       if (axios.isAxiosError(error) && error.response?.status === 401) {
         try {
           const detail = error.response?.data?.detail;
-          const isInvalidToken =
-            typeof detail === "string" &&
-            detail.toLowerCase().includes("token");
+          const detailText = typeof detail === "string" ? detail.toLowerCase() : "";
+          const isActivationMessage = detailText.includes("activation");
+          const isInvalidToken = detailText.includes("token");
 
           if (isInvalidToken || !error.config?.url?.includes("/auth/login")) {
             if (!sessionExpiredAlertShown) {
               sessionExpiredAlertShown = true;
-              Alert.alert(
-                "Compte en attente",
-                "Votre compte sera active apres l'activation du Super Admin.",
-              );
+              if (isActivationMessage) {
+                Alert.alert(
+                  "Compte en attente",
+                  "Votre compte sera active apres l'activation du Super Admin.",
+                );
+              } else {
+                Alert.alert(
+                  "Session expiree",
+                  "Veuillez vous reconnecter.",
+                );
+              }
             }
 
             await AsyncStorage.removeItem("auth-storage");

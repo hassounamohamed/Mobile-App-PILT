@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -12,7 +12,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { projectsService } from "@/services/projects";
 import { storiesService } from "@/services/stories";
 import { ProjetResponse, UserStoryResponse } from "@/types/api";
@@ -31,7 +33,55 @@ const STATUS_META: Record<string, { label: string; color: string }> = {
   TERMINE:  { label: "Terminé",  color: "#22c55e" },
 };
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.background },
+  pageTitle: { color: c.text, fontSize: SIZES.font2xl, fontWeight: "800", marginBottom: SIZES.lg },
+  projectPicker: { marginBottom: SIZES.md },
+  projectChip: {
+    paddingHorizontal: SIZES.md, paddingVertical: SIZES.sm,
+    borderRadius: SIZES.radiusSm, borderWidth: 1, borderColor: c.inputBorder,
+    backgroundColor: c.backgroundSecondary, marginRight: SIZES.sm,
+  },
+  projectChipActive: { backgroundColor: c.primary, borderColor: c.primary },
+  projectChipText: { color: c.textSecondary, fontSize: SIZES.fontSm, fontWeight: "600" },
+  projectChipTextActive: { color: c.white },
+  filterRow: { marginBottom: SIZES.sm },
+  filterChip: {
+    paddingHorizontal: SIZES.md, paddingVertical: 6,
+    borderRadius: SIZES.radiusSm, marginRight: SIZES.sm,
+    backgroundColor: c.backgroundSecondary,
+  },
+  filterChipActive: { backgroundColor: `${c.primary}33` },
+  filterChipText: { color: c.textSecondary, fontSize: SIZES.fontXs, fontWeight: "600" },
+  filterChipTextActive: { color: c.primary },
+  countText: { color: c.textSecondary, fontSize: SIZES.fontXs, marginBottom: SIZES.md },
+  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
+  emptyText: { color: c.textSecondary, fontSize: SIZES.fontBase },
+  storyCard: {
+    backgroundColor: c.backgroundSecondary,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    padding: SIZES.md,
+    marginBottom: SIZES.sm,
+  },
+  storyHeader: { flexDirection: "row", alignItems: "flex-start", gap: SIZES.sm, marginBottom: SIZES.sm },
+  priorityIcon: { fontSize: 14, marginTop: 2 },
+  storyTitle: { flex: 1, color: c.text, fontSize: SIZES.fontSm, fontWeight: "600" },
+  statusPill: { paddingHorizontal: SIZES.sm, paddingVertical: 2, borderRadius: SIZES.radiusSm },
+  statusText: { fontSize: SIZES.fontXs, fontWeight: "700" },
+  storyDesc: { color: c.textSecondary, fontSize: SIZES.fontXs, marginBottom: SIZES.sm },
+  storyMeta: { flexDirection: "row", gap: SIZES.md },
+  metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
+  metaText: { color: c.textSecondary, fontSize: SIZES.fontXs },
+});
+}
+
 export default function BacklogScreen() {
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const insets = useSafeAreaInsets();
   const [projects, setProjects] = useState<ProjetResponse[]>([]);
   const [selectedProject, setSelectedProject] = useState<ProjetResponse | null>(null);
@@ -106,14 +156,14 @@ export default function BacklogScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={() => { setRefreshing(true); loadProjects(); }}
-            tintColor={COLORS.primary}
+            tintColor={c.primary}
           />
         }
       >
         <Text style={styles.pageTitle}>Backlog</Text>
 
         {loadingProjects ? (
-          <ActivityIndicator color={COLORS.primary} style={{ marginTop: SIZES.xl }} />
+          <ActivityIndicator color={c.primary} style={{ marginTop: SIZES.xl }} />
         ) : projects.length === 0 ? (
           <View style={styles.emptyWrap}>
             <Text style={styles.emptyText}>Aucun projet disponible</Text>
@@ -149,16 +199,16 @@ export default function BacklogScreen() {
             <Text style={styles.countText}>{filtered.length} user stor{filtered.length !== 1 ? "ies" : "y"}</Text>
 
             {loadingStories ? (
-              <ActivityIndicator color={COLORS.primary} style={{ marginTop: SIZES.xl }} />
+              <ActivityIndicator color={c.primary} style={{ marginTop: SIZES.xl }} />
             ) : filtered.length === 0 ? (
               <View style={styles.emptyWrap}>
-                <Ionicons name="list-outline" size={48} color={COLORS.textSecondary} />
+                <Ionicons name="list-outline" size={48} color={c.textSecondary} />
                 <Text style={styles.emptyText}>Backlog vide</Text>
               </View>
             ) : (
               filtered.map((story) => {
-                const pm = PRIORITY_META[story.priorite] ?? { color: COLORS.textSecondary, icon: "⚪" };
-                const sm = STATUS_META[story.statut] ?? { label: story.statut, color: COLORS.textSecondary };
+                const pm = PRIORITY_META[story.priorite] ?? { color: c.textSecondary, icon: "⚪" };
+                const sm = STATUS_META[story.statut] ?? { label: story.statut, color: c.textSecondary };
                 return (
                   <View key={story.id} style={styles.storyCard}>
                     <View style={styles.storyHeader}>
@@ -174,16 +224,18 @@ export default function BacklogScreen() {
                     <View style={styles.storyMeta}>
                       {story.points !== undefined && (
                         <View style={styles.metaItem}>
-                          <Ionicons name="diamond-outline" size={12} color={COLORS.textSecondary} />
+                          <Ionicons name="diamond-outline" size={12} color={c.textSecondary} />
                           <Text style={styles.metaText}>{story.points} pts</Text>
                         </View>
                       )}
-                      {story.assignee && (
+                      {story.assignee || story.assignee_id ? (
                         <View style={styles.metaItem}>
-                          <Ionicons name="person-outline" size={12} color={COLORS.textSecondary} />
-                          <Text style={styles.metaText}>{story.assignee.nom}</Text>
+                          <Ionicons name="person-outline" size={12} color={c.textSecondary} />
+                          <Text style={styles.metaText}>
+                            {story.assignee?.nom ?? `Dev #${story.assignee_id}`}
+                          </Text>
                         </View>
-                      )}
+                      ) : null}
                     </View>
                   </View>
                 );
@@ -196,45 +248,4 @@ export default function BacklogScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
-  pageTitle: { color: COLORS.text, fontSize: SIZES.font2xl, fontWeight: "800", marginBottom: SIZES.lg },
-  projectPicker: { marginBottom: SIZES.md },
-  projectChip: {
-    paddingHorizontal: SIZES.md, paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusSm, borderWidth: 1, borderColor: COLORS.inputBorder,
-    backgroundColor: COLORS.backgroundSecondary, marginRight: SIZES.sm,
-  },
-  projectChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
-  projectChipText: { color: COLORS.textSecondary, fontSize: SIZES.fontSm, fontWeight: "600" },
-  projectChipTextActive: { color: COLORS.white },
-  filterRow: { marginBottom: SIZES.sm },
-  filterChip: {
-    paddingHorizontal: SIZES.md, paddingVertical: 6,
-    borderRadius: SIZES.radiusSm, marginRight: SIZES.sm,
-    backgroundColor: COLORS.backgroundSecondary,
-  },
-  filterChipActive: { backgroundColor: `${COLORS.primary}33` },
-  filterChipText: { color: COLORS.textSecondary, fontSize: SIZES.fontXs, fontWeight: "600" },
-  filterChipTextActive: { color: COLORS.primary },
-  countText: { color: COLORS.textSecondary, fontSize: SIZES.fontXs, marginBottom: SIZES.md },
-  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
-  emptyText: { color: COLORS.textSecondary, fontSize: SIZES.fontBase },
-  storyCard: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    padding: SIZES.md,
-    marginBottom: SIZES.sm,
-  },
-  storyHeader: { flexDirection: "row", alignItems: "flex-start", gap: SIZES.sm, marginBottom: SIZES.sm },
-  priorityIcon: { fontSize: 14, marginTop: 2 },
-  storyTitle: { flex: 1, color: COLORS.text, fontSize: SIZES.fontSm, fontWeight: "600" },
-  statusPill: { paddingHorizontal: SIZES.sm, paddingVertical: 2, borderRadius: SIZES.radiusSm },
-  statusText: { fontSize: SIZES.fontXs, fontWeight: "700" },
-  storyDesc: { color: COLORS.textSecondary, fontSize: SIZES.fontXs, marginBottom: SIZES.sm },
-  storyMeta: { flexDirection: "row", gap: SIZES.md },
-  metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
-  metaText: { color: COLORS.textSecondary, fontSize: SIZES.fontXs },
-});
+

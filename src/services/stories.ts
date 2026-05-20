@@ -9,7 +9,10 @@ type UserStoryApiResponse = {
   statut?: string | null;
   points?: number | null;
   epic_id: number;
-  assignee?: { id: number; nom: string } | null;
+  assignee?: { id: number; nom: string; email?: string } | null;
+  assigneeId?: number | null;
+  developerId?: number | null;
+  testerId?: number | null;
 };
 
 function normalizeStoryStatus(status?: string | null): UserStoryResponse["statut"] {
@@ -34,6 +37,7 @@ function normalizeStoryPriority(priority?: string | null): UserStoryResponse["pr
 }
 
 function normalizeStory(item: UserStoryApiResponse, moduleId?: number): UserStoryResponse {
+  const assigneeId = item.assigneeId ?? item.developerId ?? item.assignee?.id ?? undefined;
   return {
     id: item.id,
     titre: item.titre,
@@ -46,6 +50,8 @@ function normalizeStory(item: UserStoryApiResponse, moduleId?: number): UserStor
     assignee: item.assignee
       ? ({ id: item.assignee.id, nom: item.assignee.nom } as UserStoryResponse["assignee"])
       : undefined,
+    assignee_id: assigneeId,
+    testeur_id: item.testerId ?? undefined,
   };
 }
 

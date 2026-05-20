@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -12,7 +12,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { logsService } from "@/services/logs";
 import { AuditLogResponse, SystemLogResponse } from "@/types/api";
 
@@ -47,7 +49,92 @@ function asArray<T>(value: unknown): T[] {
   return [];
 }
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.background },
+  header: { marginBottom: SIZES.lg },
+  pageTitle: { color: c.text, fontSize: SIZES.font2xl, fontWeight: "800" },
+  pageSubtitle: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    marginTop: 2,
+  },
+  tabRow: {
+    flexDirection: "row",
+    backgroundColor: c.backgroundSecondary,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    padding: 4,
+    marginBottom: SIZES.lg,
+  },
+  tabBtn: {
+    flex: 1,
+    paddingVertical: SIZES.sm,
+    borderRadius: SIZES.radiusMd,
+    alignItems: "center",
+  },
+  tabBtnActive: { backgroundColor: c.primary },
+  tabBtnText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+  },
+  tabBtnTextActive: { color: c.white },
+  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
+  emptyText: { color: c.textSecondary, fontSize: SIZES.fontBase },
+  logCard: {
+    backgroundColor: c.backgroundSecondary,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    padding: SIZES.md,
+    marginBottom: SIZES.sm,
+  },
+  logTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SIZES.sm,
+    marginBottom: SIZES.sm,
+  },
+  actionBadge: {
+    backgroundColor: `${c.primary}22`,
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 2,
+    borderRadius: SIZES.radiusSm,
+  },
+  actionText: {
+    color: c.primary,
+    fontSize: SIZES.fontXs,
+    fontWeight: "700",
+  },
+  logTime: {
+    marginLeft: "auto",
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+  },
+  logResource: {
+    color: c.text,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+    marginBottom: SIZES.sm,
+  },
+  logMessage: {
+    color: c.text,
+    fontSize: SIZES.fontSm,
+    marginBottom: SIZES.sm,
+  },
+  logUser: { flexDirection: "row", alignItems: "center", gap: 4 },
+  logUserText: { color: c.textSecondary, fontSize: SIZES.fontXs },
+  levelDot: { width: 8, height: 8, borderRadius: 4 },
+  levelLabel: { fontSize: SIZES.fontXs, fontWeight: "700" },
+});
+}
+
 export default function LogsScreen() {
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<Tab>("audit");
   const [auditLogs, setAuditLogs] = useState<AuditLogResponse[]>([]);
@@ -100,7 +187,7 @@ export default function LogsScreen() {
               setRefreshing(true);
               load();
             }}
-            tintColor={COLORS.primary}
+            tintColor={c.primary}
           />
         }
       >
@@ -132,7 +219,7 @@ export default function LogsScreen() {
 
         {loading ? (
           <ActivityIndicator
-            color={COLORS.primary}
+            color={c.primary}
             style={{ marginTop: SIZES.xxl }}
           />
         ) : activeTab === "audit" ? (
@@ -141,7 +228,7 @@ export default function LogsScreen() {
               <Ionicons
                 name="receipt-outline"
                 size={48}
-                color={COLORS.textSecondary}
+                color={c.textSecondary}
               />
               <Text style={styles.emptyText}>Aucun log d'audit</Text>
             </View>
@@ -162,7 +249,7 @@ export default function LogsScreen() {
                   <Ionicons
                     name="person-outline"
                     size={12}
-                    color={COLORS.textSecondary}
+                    color={c.textSecondary}
                   />
                   <Text style={styles.logUserText}>
                     {log.user_nom} · {log.user_email}
@@ -176,7 +263,7 @@ export default function LogsScreen() {
             <Ionicons
               name="terminal-outline"
               size={48}
-              color={COLORS.textSecondary}
+              color={c.textSecondary}
             />
             <Text style={styles.emptyText}>Aucun log système</Text>
           </View>
@@ -184,7 +271,7 @@ export default function LogsScreen() {
           systemLogs.map((log) => {
             const color =
               LEVEL_COLORS[log.level as keyof typeof LEVEL_COLORS] ??
-              COLORS.textSecondary;
+              c.textSecondary;
             return (
               <View key={log.id} style={styles.logCard}>
                 <View style={styles.logTop}>
@@ -199,7 +286,7 @@ export default function LogsScreen() {
                   <Ionicons
                     name="hardware-chip-outline"
                     size={12}
-                    color={COLORS.textSecondary}
+                    color={c.textSecondary}
                   />
                   <Text style={styles.logUserText}>{log.source}</Text>
                 </View>
@@ -212,82 +299,4 @@ export default function LogsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
-  header: { marginBottom: SIZES.lg },
-  pageTitle: { color: COLORS.text, fontSize: SIZES.font2xl, fontWeight: "800" },
-  pageSubtitle: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    marginTop: 2,
-  },
-  tabRow: {
-    flexDirection: "row",
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    padding: 4,
-    marginBottom: SIZES.lg,
-  },
-  tabBtn: {
-    flex: 1,
-    paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusMd,
-    alignItems: "center",
-  },
-  tabBtnActive: { backgroundColor: COLORS.primary },
-  tabBtnText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-  },
-  tabBtnTextActive: { color: COLORS.white },
-  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
-  emptyText: { color: COLORS.textSecondary, fontSize: SIZES.fontBase },
-  logCard: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    padding: SIZES.md,
-    marginBottom: SIZES.sm,
-  },
-  logTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SIZES.sm,
-    marginBottom: SIZES.sm,
-  },
-  actionBadge: {
-    backgroundColor: `${COLORS.primary}22`,
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 2,
-    borderRadius: SIZES.radiusSm,
-  },
-  actionText: {
-    color: COLORS.primary,
-    fontSize: SIZES.fontXs,
-    fontWeight: "700",
-  },
-  logTime: {
-    marginLeft: "auto",
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-  },
-  logResource: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-    marginBottom: SIZES.sm,
-  },
-  logMessage: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    marginBottom: SIZES.sm,
-  },
-  logUser: { flexDirection: "row", alignItems: "center", gap: 4 },
-  logUserText: { color: COLORS.textSecondary, fontSize: SIZES.fontXs },
-  levelDot: { width: 8, height: 8, borderRadius: 4 },
-  levelLabel: { fontSize: SIZES.fontXs, fontWeight: "700" },
-});
+

@@ -3,16 +3,19 @@
 ## Quick Navigation
 
 ### 🚀 **START HERE**
+
 - [`README_AUTH.md`](./README_AUTH.md) - Quick overview (5 min read)
 - [`SETUP.md`](./SETUP.md) - Installation guide (10 min read)
 - [`PROJECT_SUMMARY.md`](./PROJECT_SUMMARY.md) - Visual summary (5 min read)
 
 ### 📖 **LEARN MORE**
+
 - [`AUTH_ARCHITECTURE.md`](./AUTH_ARCHITECTURE.md) - System architecture (15 min read)
 - [`USAGE_EXAMPLES.md`](./USAGE_EXAMPLES.md) - Code examples (20 min read)
 - [`IMPLEMENTATION_SUMMARY.md`](./IMPLEMENTATION_SUMMARY.md) - Full details (15 min read)
 
 ### ✅ **REFERENCE**
+
 - [`COMPLETION_CHECKLIST.md`](./COMPLETION_CHECKLIST.md) - Status tracking
 - [`PROJECT_SUMMARY.md`](./PROJECT_SUMMARY.md) - Visual statistics
 
@@ -21,6 +24,7 @@
 ## 📂 File Location Map
 
 ### Authentication Features
+
 ```
 src/features/auth/
 ├── api.ts                 → API service with Axios
@@ -34,6 +38,7 @@ src/features/auth/
 ```
 
 ### UI Components
+
 ```
 src/components/ui/
 ├── Button.tsx            → Reusable button (4 variants)
@@ -47,9 +52,10 @@ src/components/ui/
 ```
 
 ### Design System
+
 ```
 src/constants/
-├── colors.ts             → PILT platform color palette
+├── colors.ts             → FlowPilot platform color palette
 ├── sizes.ts              → Spacing & typography
 └── roles.ts              → User role definitions
 
@@ -63,6 +69,7 @@ src/lib/
 ```
 
 ### Routes
+
 ```
 app/(auth)/
 ├── _layout.tsx           → Auth stack navigator
@@ -73,6 +80,7 @@ app/(auth)/
 ```
 
 ### Configuration
+
 ```
 Root Directory
 ├── babel.config.js       → Module resolution setup
@@ -85,30 +93,32 @@ Root Directory
 
 ## 📊 Statistics Table
 
-| Category | Files | Lines | Status |
-|----------|-------|-------|--------|
-| **Screens** | 4 | 1,200 | ✅ |
-| **Components** | 8 | 800 | ✅ |
-| **Services** | 3 | 440 | ✅ |
-| **Constants** | 3 | 100 | ✅ |
-| **Types** | 1 | 40 | ✅ |
-| **Utils** | 3 | 250 | ✅ |
-| **Routes** | 5 | 80 | ✅ |
-| **Config** | 3 | 50 | ✅ |
-| **Documentation** | 6 | 2,200+ | ✅ |
-| **TOTAL** | 36+ | 5,160+ | 100% ✅ |
+| Category          | Files | Lines  | Status  |
+| ----------------- | ----- | ------ | ------- |
+| **Screens**       | 4     | 1,200  | ✅      |
+| **Components**    | 8     | 800    | ✅      |
+| **Services**      | 3     | 440    | ✅      |
+| **Constants**     | 3     | 100    | ✅      |
+| **Types**         | 1     | 40     | ✅      |
+| **Utils**         | 3     | 250    | ✅      |
+| **Routes**        | 5     | 80     | ✅      |
+| **Config**        | 3     | 50     | ✅      |
+| **Documentation** | 6     | 2,200+ | ✅      |
+| **TOTAL**         | 36+   | 5,160+ | 100% ✅ |
 
 ---
 
 ## 🎯 Feature Checklist
 
 ### Authentication (4/4)
+
 - [x] Login screen with email/password
 - [x] Registration with form validation
 - [x] Forgot password flow
 - [x] Role selection screen
 
 ### Components (8/8)
+
 - [x] Button (4 variants)
 - [x] Card container
 - [x] TextInputField
@@ -119,19 +129,22 @@ Root Directory
 - [x] Header
 
 ### State Management
+
 - [x] Zustand store
 - [x] AsyncStorage persistence
 - [x] Custom hooks
 - [x] Token management
 
 ### API Integration
+
 - [x] Axios service
 - [x] Authentication endpoints
 - [x] Error handling
 - [x] Social login support
 
 ### Design & UX
-- [x] PILT platform colors
+
+- [x] FlowPilot platform colors
 - [x] Typography system
 - [x] Spacing constants
 - [x] Animations (Reanimated)
@@ -140,6 +153,7 @@ Root Directory
 - [x] Form validation
 
 ### Documentation
+
 - [x] Architecture guide
 - [x] Setup instructions
 - [x] Usage examples
@@ -152,14 +166,18 @@ Root Directory
 ## 📝 Documentation Overview
 
 ### 1. README_AUTH.md (Entry Point)
+
 **Quick reference for new developers**
+
 - What's included
 - Quick start in 4 steps
 - Key technologies
 - Common questions
 
 ### 2. SETUP.md (Setup Guide)
+
 **Complete installation & configuration**
+
 - Installation steps
 - Environment setup
 - Architecture overview
@@ -168,7 +186,9 @@ Root Directory
 - Debugging tips
 
 ### 3. USAGE_EXAMPLES.md (Code Examples)
+
 **Real-world code samples**
+
 - Complete login form
 - Complete registration form
 - Using custom hooks
@@ -179,7 +199,9 @@ Root Directory
 - Logout implementation
 
 ### 4. AUTH_ARCHITECTURE.md (Technical Guide)
+
 **System design & API documentation**
+
 - Architecture overview
 - Component descriptions
 - Color scheme details
@@ -189,7 +211,9 @@ Root Directory
 - Hook usage
 
 ### 5. IMPLEMENTATION_SUMMARY.md (Project Details)
+
 **Complete project overview**
+
 - File structure
 - Technology stack
 - Architecture decisions
@@ -200,7 +224,9 @@ Root Directory
 - Next steps
 
 ### 6. PROJECT_SUMMARY.md (Visual Summary)
+
 **Quick visual reference**
+
 - Project statistics
 - Architecture diagram
 - Screens overview
@@ -211,7 +237,9 @@ Root Directory
 - Quick start
 
 ### 7. COMPLETION_CHECKLIST.md (Status Tracking)
+
 **Project status & progress**
+
 - Feature completion
 - File status
 - Quality assurance checklist
@@ -223,24 +251,31 @@ Root Directory
 ## 🔍 How to Find What You Need
 
 ### "How do I get started?"
+
 👉 Read: [`README_AUTH.md`](./README_AUTH.md) → [`SETUP.md`](./SETUP.md)
 
 ### "How do I use the authentication system?"
+
 👉 Read: [`USAGE_EXAMPLES.md`](./USAGE_EXAMPLES.md)
 
 ### "What's the system architecture?"
+
 👉 Read: [`AUTH_ARCHITECTURE.md`](./AUTH_ARCHITECTURE.md)
 
 ### "I need code examples"
+
 👉 Read: [`USAGE_EXAMPLES.md`](./USAGE_EXAMPLES.md)
 
 ### "What's the project status?"
+
 👉 Read: [`COMPLETION_CHECKLIST.md`](./COMPLETION_CHECKLIST.md)
 
 ### "I need a visual overview"
+
 👉 Read: [`PROJECT_SUMMARY.md`](./PROJECT_SUMMARY.md)
 
 ### "What do I do next?"
+
 👉 Read: [`SETUP.md`](./SETUP.md) → Implementation Guides
 
 ---
@@ -248,22 +283,26 @@ Root Directory
 ## 💡 Key Files to Remember
 
 ### Must Read First
+
 1. `README_AUTH.md` - Overview
 2. `SETUP.md` - Installation
 3. `USAGE_EXAMPLES.md` - How to use
 
 ### Core Implementation
+
 1. `src/features/auth/store.ts` - State management
 2. `src/features/auth/api.ts` - API calls
 3. `src/features/auth/hooks.ts` - Custom hooks
 4. `app/_layout.tsx` - Navigation logic
 
 ### UI Components
+
 1. `src/components/ui/Button.tsx` - Main button
 2. `src/components/ui/TextInputField.tsx` - Form input
 3. `src/components/ui/Card.tsx` - Container
 
 ### Configuration
+
 1. `babel.config.js` - Module resolution
 2. `tsconfig.json` - TypeScript config
 3. `.env.example` - Environment template
@@ -303,18 +342,21 @@ Root Directory
 ## 📞 Quick Reference
 
 ### Installation
+
 ```bash
 npm install
 npx expo install @react-native-async-storage/async-storage
 ```
 
 ### Configuration
+
 ```bash
 cp .env.example .env.local
 # Edit with your API URL
 ```
 
 ### Development
+
 ```bash
 npm start                # Start dev server
 npm run ios             # Run iOS simulator
@@ -323,6 +365,7 @@ npm run web             # Run web version
 ```
 
 ### Build
+
 ```bash
 eas build --platform ios      # Build for iOS
 eas build --platform android  # Build for Android

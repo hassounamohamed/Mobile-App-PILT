@@ -1,10 +1,12 @@
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
 import { useAuthStore } from "@/context/authStore";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { AuthStackParamList } from "@/navigation/types";
 import { authApi } from "@/services/auth";
 import { RouteProp, useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 type OAuthCallbackRouteProp = RouteProp<AuthStackParamList, "OAuthCallback">;
@@ -28,12 +30,31 @@ function mapRoleCodeToLabel(roleCode?: string) {
   }
 }
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: c.background,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: SIZES.lg,
+    },
+    text: {
+      marginTop: SIZES.md,
+      color: c.textSecondary,
+      fontSize: SIZES.fontBase,
+    },
+  });
+}
+
 export const OAuthCallbackScreen = () => {
   const route = useRoute<OAuthCallbackRouteProp>();
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { setUser, setToken, setRefreshToken, setError, setLoading } =
     useAuthStore();
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
 
   useEffect(() => {
     const params = route.params || {};
@@ -83,23 +104,8 @@ export const OAuthCallbackScreen = () => {
 
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color={COLORS.primary} />
+      <ActivityIndicator size="large" color={c.primary} />
       <Text style={styles.text}>Connexion OAuth en cours...</Text>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: SIZES.lg,
-  },
-  text: {
-    marginTop: SIZES.md,
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontBase,
-  },
-});

@@ -2,7 +2,9 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SocialButton } from "@/components/ui/SocialButton";
 import { TextInputField } from "@/components/ui/TextInputField";
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { USER_ROLES } from "@/constants/roles";
 import { useAuthStore } from "@/context/authStore";
 import { AuthStackParamList } from "@/navigation/types";
@@ -13,7 +15,7 @@ import * as AuthSession from "expo-auth-session";
 import * as Linking from "expo-linking";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import React, { useCallback, useState } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import * as WebBrowser from "expo-web-browser";
 import {
     ScrollView,
@@ -25,7 +27,190 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/hooks/useAuth";
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: c.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: SIZES.lg,
+    paddingVertical: SIZES.xl,
+  },
+  header: {
+    alignItems: "center",
+    marginBottom: SIZES.xl,
+  },
+  headerIconWrap: {
+    width: SIZES.iconXl * 2.1,
+    height: SIZES.iconXl * 2.1,
+    borderRadius: SIZES.iconXl * 1.05,
+    backgroundColor: c.backgroundSecondary,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: {
+    fontSize: SIZES.font2xl,
+    fontWeight: "700",
+    color: c.text,
+    marginTop: SIZES.md,
+    letterSpacing: 0.5,
+  },
+  subtitle: {
+    fontSize: SIZES.fontBase,
+    color: c.textSecondary,
+    textAlign: "center",
+    marginTop: SIZES.sm,
+  },
+  errorCard: {
+    marginBottom: SIZES.lg,
+    backgroundColor: c.background,
+    borderColor: c.error,
+  },
+  errorContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  errorText: {
+    color: c.error,
+    fontSize: SIZES.fontSm,
+    marginLeft: SIZES.md,
+    flex: 1,
+    fontWeight: "500",
+  },
+  formCard: {
+    marginBottom: SIZES.xl,
+    borderColor: c.inputBorder,
+    backgroundColor: c.background,
+  },
+  form: {
+    gap: SIZES.sm,
+  },
+  roleSection: {
+    marginTop: SIZES.sm,
+    marginBottom: SIZES.md,
+  },
+  roleLabel: {
+    color: c.text,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+    marginBottom: SIZES.xs,
+    letterSpacing: 0.3,
+  },
+  roleHint: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginBottom: SIZES.md,
+  },
+  roleGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SIZES.sm,
+    marginBottom: SIZES.md,
+  },
+  roleButton: {
+    width: "31%",
+    minHeight: 74,
+    backgroundColor: c.inputBackground,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: SIZES.sm,
+  },
+  roleButtonSelected: {
+    backgroundColor: c.backgroundSecondary,
+    borderColor: c.primary,
+  },
+  roleButtonText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    fontWeight: "600",
+    marginTop: SIZES.xs,
+    textAlign: "center",
+  },
+  roleButtonTextSelected: {
+    color: c.primary,
+    fontWeight: "600",
+  },
+  registerButton: {
+    marginTop: SIZES.sm,
+  },
+  termsText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    textAlign: "center",
+    marginTop: SIZES.md,
+    lineHeight: SIZES.fontSm * SIZES.lineHeightNormal,
+  },
+  termsLink: {
+    color: c.primary,
+    fontWeight: "600",
+  },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: SIZES.xl,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: c.inputBorder,
+  },
+  dividerText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginHorizontal: SIZES.md,
+    fontWeight: "500",
+    letterSpacing: 0.5,
+  },
+  socialContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: SIZES.md,
+    marginBottom: SIZES.xl,
+  },
+  signinContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  signinText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontBase,
+    fontWeight: "400",
+  },
+  signinLink: {
+    color: c.primary,
+    fontSize: SIZES.fontBase,
+    fontWeight: "600",
+  },
+  successState: {
+    gap: SIZES.md,
+    alignItems: "center",
+    paddingVertical: SIZES.md,
+  },
+  successTitle: {
+    fontSize: SIZES.fontLg,
+    fontWeight: "700",
+    color: c.text,
+    textAlign: "center",
+  },
+  successText: {
+    fontSize: SIZES.fontBase,
+    color: c.textSecondary,
+    textAlign: "center",
+    lineHeight: SIZES.fontBase * SIZES.lineHeightNormal,
+  },
+});
+}
+
 export const RegisterScreen = () => {
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const insets = useSafeAreaInsets();
@@ -225,7 +410,7 @@ export const RegisterScreen = () => {
             <Ionicons
               name="checkmark-done-circle-outline"
               size={SIZES.iconXl}
-              color={COLORS.primary}
+              color={c.primary}
             />
           </View>
           <Text style={styles.title}>Create your account</Text>
@@ -241,7 +426,7 @@ export const RegisterScreen = () => {
               <Ionicons
                 name="alert-circle"
                 size={SIZES.iconMd}
-                color={COLORS.error}
+                color={c.error}
               />
               <Text style={styles.errorText}>{error}</Text>
             </View>
@@ -255,7 +440,7 @@ export const RegisterScreen = () => {
               <Ionicons
                 name="checkmark-circle"
                 size={SIZES.iconXl}
-                color={COLORS.success}
+                color={c.success}
               />
               <Text style={styles.successTitle}>Compte cree avec succes</Text>
               <Text style={styles.successText}>
@@ -321,8 +506,8 @@ export const RegisterScreen = () => {
                     size={SIZES.iconMd}
                     color={
                       selectedRole === role.label
-                        ? COLORS.primary
-                        : COLORS.textSecondary
+                        ? c.primary
+                        : c.textSecondary
                     }
                   />
                   <Text
@@ -420,180 +605,4 @@ export const RegisterScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: SIZES.lg,
-    paddingVertical: SIZES.xl,
-  },
-  header: {
-    alignItems: "center",
-    marginBottom: SIZES.xl,
-  },
-  headerIconWrap: {
-    width: SIZES.iconXl * 2.1,
-    height: SIZES.iconXl * 2.1,
-    borderRadius: SIZES.iconXl * 1.05,
-    backgroundColor: COLORS.backgroundSecondary,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: SIZES.font2xl,
-    fontWeight: "700",
-    color: COLORS.text,
-    marginTop: SIZES.md,
-    letterSpacing: 0.5,
-  },
-  subtitle: {
-    fontSize: SIZES.fontBase,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    marginTop: SIZES.sm,
-  },
-  errorCard: {
-    marginBottom: SIZES.lg,
-    backgroundColor: COLORS.background,
-    borderColor: COLORS.error,
-  },
-  errorContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: SIZES.fontSm,
-    marginLeft: SIZES.md,
-    flex: 1,
-    fontWeight: "500",
-  },
-  formCard: {
-    marginBottom: SIZES.xl,
-    borderColor: COLORS.inputBorder,
-    backgroundColor: COLORS.background,
-  },
-  form: {
-    gap: SIZES.sm,
-  },
-  roleSection: {
-    marginTop: SIZES.sm,
-    marginBottom: SIZES.md,
-  },
-  roleLabel: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-    marginBottom: SIZES.xs,
-    letterSpacing: 0.3,
-  },
-  roleHint: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginBottom: SIZES.md,
-  },
-  roleGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: SIZES.sm,
-    marginBottom: SIZES.md,
-  },
-  roleButton: {
-    width: "31%",
-    minHeight: 74,
-    backgroundColor: COLORS.inputBackground,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: SIZES.sm,
-  },
-  roleButtonSelected: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderColor: COLORS.primary,
-  },
-  roleButtonText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    fontWeight: "600",
-    marginTop: SIZES.xs,
-    textAlign: "center",
-  },
-  roleButtonTextSelected: {
-    color: COLORS.primary,
-    fontWeight: "600",
-  },
-  registerButton: {
-    marginTop: SIZES.sm,
-  },
-  termsText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    textAlign: "center",
-    marginTop: SIZES.md,
-    lineHeight: SIZES.fontSm * SIZES.lineHeightNormal,
-  },
-  termsLink: {
-    color: COLORS.primary,
-    fontWeight: "600",
-  },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: SIZES.xl,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.inputBorder,
-  },
-  dividerText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginHorizontal: SIZES.md,
-    fontWeight: "500",
-    letterSpacing: 0.5,
-  },
-  socialContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: SIZES.md,
-    marginBottom: SIZES.xl,
-  },
-  signinContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  signinText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontBase,
-    fontWeight: "400",
-  },
-  signinLink: {
-    color: COLORS.primary,
-    fontSize: SIZES.fontBase,
-    fontWeight: "600",
-  },
-  successState: {
-    gap: SIZES.md,
-    alignItems: "center",
-    paddingVertical: SIZES.md,
-  },
-  successTitle: {
-    fontSize: SIZES.fontLg,
-    fontWeight: "700",
-    color: COLORS.text,
-    textAlign: "center",
-  },
-  successText: {
-    fontSize: SIZES.fontBase,
-    color: COLORS.textSecondary,
-    textAlign: "center",
-    lineHeight: SIZES.fontBase * SIZES.lineHeightNormal,
-  },
-});
+

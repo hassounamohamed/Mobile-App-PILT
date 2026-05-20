@@ -1,12 +1,12 @@
-# 🎯 PILT Mobile App - Intégration Complète
+# 🎯 FlowPilot Mobile App - Intégration Complète
 
-> **Application mobile React Native entièrement connectée au backend PILT**
+> **Application mobile React Native entièrement connectée au backend FlowPilot**
 
 ## 🚀 Status: Production-Ready ✅
 
 ```
 ✅ Authentification           Configurée & testée
-✅ Endpoints PILT             Tous mappés
+✅ Endpoints FlowPilot             Tous mappés
 ✅ Conversion de données      Automatique
 ✅ Sécurité                   JWT Bearer Token
 ✅ Persistance                AsyncStorage
@@ -21,7 +21,7 @@
 ### 1️⃣ Démarrer le Backend
 
 ```powershell
-cd C:\Users\kheli\OneDrive\Bureau\PILT\plateforme-back
+cd C:\Users\kheli\OneDrive\Bureau\FlowPilot\plateforme-back
 .venv\Scripts\activate
 python -m uvicorn main:app --reload
 ```
@@ -38,7 +38,7 @@ npm start
 
 ```
 Email: admin@example.com (ou créer un utilisateur)
-Mot de passe: (du backend PILT)
+Mot de passe: (du backend FlowPilot)
 ```
 
 ### 4️⃣ Vérifier l'Intégration
@@ -57,7 +57,7 @@ Mot de passe: (du backend PILT)
 mobile-app/
 ├── 📂 src/
 │   ├── 📂 features/auth/
-│   │   ├── api.ts              ✅ PILT Integration
+│   │   ├── api.ts              ✅ FlowPilot Integration
 │   │   ├── store.ts            État global
 │   │   ├── hooks.ts            Custom hooks
 │   │   └── screens/            4 écrans auth
@@ -71,11 +71,11 @@ mobile-app/
 │   ├── 📂 (auth)/              Routes authentification
 │   └── 📂 (tabs)/              Routes authentifiées
 │
-├── .env                        Configuration ✅ PILT
+├── .env                        Configuration ✅ FlowPilot
 ├── .env.example                Template
 │
-├── 📄 QUICK_START_PILT.md      👈 Commencer ici!
-├── 📄 PILT_INTEGRATION.md      Guide technique
+├── 📄 QUICK_START_FlowPilot.md      👈 Commencer ici!
+├── 📄 FlowPilot_INTEGRATION.md      Guide technique
 ├── 📄 TESTING_GUIDE.md         Tests complets
 └── 📄 quick-commands.ps1       Commands PowerShell
 ```
@@ -92,7 +92,7 @@ EXPO_PUBLIC_GOOGLE_CLIENT_ID=...
 EXPO_PUBLIC_GITHUB_CLIENT_ID=...
 ```
 
-### Backend PILT
+### Backend FlowPilot
 
 ```
 URL:       http://127.0.0.1:8000
@@ -104,16 +104,16 @@ Database:  PostgreSQL (Neon)
 
 ## 📚 Documentation
 
-| Guide                                                          | Durée  | Contenu                     |
-| -------------------------------------------------------------- | ------ | --------------------------- |
-| [QUICK_START_PILT.md](./QUICK_START_PILT.md)                   | 5 min  | Démarrage immédiat          |
-| [PILT_INTEGRATION.md](./PILT_INTEGRATION.md)                   | 15 min | Guide technique détaillé    |
-| [TESTING_GUIDE.md](./TESTING_GUIDE.md)                         | 30 min | Tests fonctionnels complets |
-| [PILT_INTEGRATION_COMPLETE.md](./PILT_INTEGRATION_COMPLETE.md) | 10 min | Résumé complet              |
+| Guide                                                                    | Durée  | Contenu                     |
+| ------------------------------------------------------------------------ | ------ | --------------------------- |
+| [QUICK_START_FlowPilot.md](./QUICK_START_FlowPilot.md)                   | 5 min  | Démarrage immédiat          |
+| [FlowPilot_INTEGRATION.md](./FlowPilot_INTEGRATION.md)                   | 15 min | Guide technique détaillé    |
+| [TESTING_GUIDE.md](./TESTING_GUIDE.md)                                   | 30 min | Tests fonctionnels complets |
+| [FlowPilot_INTEGRATION_COMPLETE.md](./FlowPilot_INTEGRATION_COMPLETE.md) | 10 min | Résumé complet              |
 
 ---
 
-## 🎯 Endpoints PILT Intégrés
+## 🎯 Endpoints FlowPilot Intégrés
 
 ```
 POST   /auth/login                    ✅ Login
@@ -173,7 +173,7 @@ AsyncStorage avec clé d'accès différente par app
 ✅ **Expiration Automatique**
 
 ```
-30 minutes (configuré PILT)
+30 minutes (configuré FlowPilot)
 Reconnecter après expiration
 ```
 
@@ -233,7 +233,7 @@ curl -X POST http://127.0.0.1:8000/auth/register \
 
 ```
 App Format:    { email: "...", password: "..." }
-PILT Format:   username=...&password=...
+FlowPilot Format:   username=...&password=...
 Conversion:    ✅ Automatique dans api.ts
 ```
 
@@ -241,17 +241,17 @@ Conversion:    ✅ Automatique dans api.ts
 
 ```
 App Format:    { fullName, email, phoneNumber, role, password }
-PILT Format:   { nom, email, motDePasse, telephone, role_id }
+FlowPilot Format:   { nom, email, motDePasse, telephone, role_id }
 Conversion:    ✅ Automatique dans api.ts
 ```
 
 ### Rôles
 
 ```
-App:   "Développeur"   →  PILT:  2
-App:   "Testeur QA"    →  PILT:  3
-App:   "Product Owner" →  PILT:  4
-App:   "Scrum Master"  →  PILT:  5
+App:   "Développeur"   →  FlowPilot:  2
+App:   "Testeur QA"    →  FlowPilot:  3
+App:   "Product Owner" →  FlowPilot:  4
+App:   "Scrum Master"  →  FlowPilot:  5
 Conversion:    ✅ Automatique dans api.ts
 ```
 
@@ -288,10 +288,10 @@ Solution: Nettoyer le cache et redémarrer
 **Temps total: ~1 heure**
 
 1. **Lire** (5 min)
-   - [QUICK_START_PILT.md](./QUICK_START_PILT.md)
+   - [QUICK_START_FlowPilot.md](./QUICK_START_FlowPilot.md)
 
 2. **Démarrer** (5 min)
-   - Backend PILT
+   - Backend FlowPilot
    - App mobile
 
 3. **Tester** (20 min)
@@ -301,7 +301,7 @@ Solution: Nettoyer le cache et redémarrer
    - Reset Password
 
 4. **Approfondir** (15 min)
-   - [PILT_INTEGRATION.md](./PILT_INTEGRATION.md)
+   - [FlowPilot_INTEGRATION.md](./FlowPilot_INTEGRATION.md)
 
 5. **Valider** (30 min)
    - [TESTING_GUIDE.md](./TESTING_GUIDE.md)
@@ -310,7 +310,7 @@ Solution: Nettoyer le cache et redémarrer
 
 ## 📝 Checklist de Démarrage
 
-- [ ] Backend PILT en cours d'exécution
+- [ ] Backend FlowPilot en cours d'exécution
 - [ ] Port 8000 accessible (`curl http://127.0.0.1:8000/docs`)
 - [ ] `.env` configuré avec `EXPO_PUBLIC_API_URL`
 - [ ] `npm install` exécuté
@@ -353,7 +353,7 @@ Solution: Nettoyer le cache et redémarrer
 
 ### Après Configuration
 
-1. ✅ Intégrer d'autres endpoints PILT (`/projets`, `/sprints`)
+1. ✅ Intégrer d'autres endpoints FlowPilot (`/projets`, `/sprints`)
 2. ✅ Configurer OAuth Google & GitHub
 3. ✅ Ajouter biométrie (Face ID/Fingerprint)
 4. ✅ Configurer notifications push
@@ -372,7 +372,7 @@ Solution: Nettoyer le cache et redémarrer
 **Erreurs ou questions?**
 
 1. Consulter [TESTING_GUIDE.md](./TESTING_GUIDE.md) → Troubleshooting
-2. Consulter [PILT_INTEGRATION.md](./PILT_INTEGRATION.md) → Debug section
+2. Consulter [FlowPilot_INTEGRATION.md](./FlowPilot_INTEGRATION.md) → Debug section
 3. Vérifier les logs du backend:
    ```bash
    tail -f /path/to/backend/logs/app.log
@@ -385,12 +385,12 @@ Solution: Nettoyer le cache et redémarrer
 ✅ **Intégration Transparente**
 
 - Conversion auto des formats données
-- Pas de logique PILT-specific dans les composants
+- Pas de logique FlowPilot-specific dans les composants
 
 ✅ **Type-Safe**
 
 - TypeScript 100%
-- Interfaces pour PILT et App
+- Interfaces pour FlowPilot et App
 
 ✅ **Production-Ready**
 
@@ -416,19 +416,19 @@ Solution: Nettoyer le cache et redémarrer
 
 ```
 ╔═════════════════════════════════════════════════╗
-║  App Mobile ← → Backend PILT                    ║
+║  App Mobile ← → Backend FlowPilot                    ║
 ║                                                 ║
 ║  ✅ Connectée                                   ║
 ║  ✅ Configurée                                  ║
 ║  ✅ Documentée                                  ║
 ║  ✅ Prête pour développement                    ║
 ║                                                 ║
-║  Lire: QUICK_START_PILT.md                      ║
+║  Lire: QUICK_START_FlowPilot.md                      ║
 ╚═════════════════════════════════════════════════╝
 ```
 
 ---
 
-**👉 Commencez par:** [QUICK_START_PILT.md](./QUICK_START_PILT.md)
+**👉 Commencez par:** [QUICK_START_FlowPilot.md](./QUICK_START_FlowPilot.md)
 
 **Bon développement! 🚀**

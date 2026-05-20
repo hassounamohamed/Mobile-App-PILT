@@ -27,6 +27,18 @@ type CasApiResponse = {
   user_story_id?: number;
 };
 
+type CasHistoryApiResponse = {
+  id: number;
+  changed_by_id?: number | null;
+  changed_by_nom?: string | null;
+  changed_by_email?: string | null;
+  old_statut_test?: string | null;
+  new_statut_test?: string | null;
+  old_commentaire?: string | null;
+  new_commentaire?: string | null;
+  changed_at?: string | null;
+};
+
 type BacklogStoryApi = {
   id: number;
 };
@@ -89,6 +101,27 @@ function normalizeCas(item: CasApiResponse): CasTestResponse {
     statut: normalizeCasStatus(item.statut_test),
     resultat: item.resultat_obtenu ?? undefined,
     user_story_id: item.user_story_id,
+  };
+}
+
+function normalizeCasHistory(
+  item: CasHistoryApiResponse,
+): CasTestHistoryEntry {
+  const statut = item.new_statut_test ?? item.old_statut_test ?? undefined;
+  const commentaire = item.new_commentaire ?? item.old_commentaire ?? undefined;
+  const created_at = item.changed_at ?? undefined;
+  const userLabel =
+    item.changed_by_nom ??
+    item.changed_by_email ??
+    (item.changed_by_id ? `Utilisateur #${item.changed_by_id}` : undefined);
+
+  return {
+    id: item.id,
+    statut,
+    commentaire,
+    created_at,
+    user_nom: userLabel,
+    user_email: item.changed_by_email ?? undefined,
   };
 }
 
@@ -182,10 +215,10 @@ export const cahierTestsService = {
     casId: number,
   ): Promise<CasTestHistoryEntry[]> {
     try {
-      const res = await apiClient.get<CasTestHistoryEntry[]>(
+      const res = await apiClient.get<CasHistoryApiResponse[]>(
         `/projets/${projetId}/cahier-tests/${cahierId}/cas-tests/${casId}/history`,
       );
-      return res.data ?? [];
+      return (res.data ?? []).map(normalizeCasHistory);
     } catch (e) {
       handleApiError(e);
     }

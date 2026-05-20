@@ -9,6 +9,7 @@ type UtilisateurApiResponse = {
   email: string;
   nom: string;
   telephone?: string | null;
+  /** Champ renvoyé par la plateforme PILT (`UserAdminResponse`). */
   actif?: boolean;
   is_active?: boolean;
   role?: RoleResponse;
@@ -47,23 +48,20 @@ export const usersService = {
     }
   },
 
-  async activate(userId: number): Promise<UtilisateurResponse> {
+  /**
+   * PATCH /users/{id}/activate — le backend renvoie { message, user_id }, pas le profil complet.
+   */
+  async activate(userId: number): Promise<void> {
     try {
-      const res = await apiClient.patch<UtilisateurApiResponse>(
-        `/users/${userId}/activate`
-      );
-      return normalizeUser(res.data);
+      await apiClient.patch(`/users/${userId}/activate`);
     } catch (e) {
       handleApiError(e);
     }
   },
 
-  async deactivate(userId: number): Promise<UtilisateurResponse> {
+  async deactivate(userId: number): Promise<void> {
     try {
-      const res = await apiClient.patch<UtilisateurApiResponse>(
-        `/users/${userId}/deactivate`
-      );
-      return normalizeUser(res.data);
+      await apiClient.patch(`/users/${userId}/deactivate`);
     } catch (e) {
       handleApiError(e);
     }

@@ -37,6 +37,7 @@ export interface AuthState {
   user: User | null;
   token: string | null;
   refreshToken: string | null;
+  rememberMe: boolean;
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
@@ -51,25 +52,25 @@ export interface ResetPasswordRequest {
   newPassword: string;
 }
 
-// ===== PILT API Types =====
+// ===== FlowPilot API Types =====
 
-export interface PILTTokenRole {
+export interface FlowPilotTokenRole {
   id: number;
   nom: string;
   code: string;
   niveau_acces: number;
 }
 
-export interface PILTAuthResponse {
+export interface FlowPilotAuthResponse {
   access_token: string;
   token_type: string;
   user_id: number;
   nom: string;
   email: string;
-  role?: PILTTokenRole;
+  role?: FlowPilotTokenRole;
 }
 
-export interface PILTRegisterRequest {
+export interface FlowPilotRegisterRequest {
   nom: string;
   email: string;
   motDePasse: string;
@@ -77,7 +78,7 @@ export interface PILTRegisterRequest {
   role_id: number;
 }
 
-export interface PILTSelectRoleRequest {
+export interface FlowPilotSelectRoleRequest {
   user_id: number;
   role: number; // role_id
 }

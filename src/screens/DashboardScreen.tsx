@@ -2,7 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { useAuthStore } from "@/context/authStore";
 import { UserRole } from "@/types/auth";
-import { dashboardStyles as styles } from "@/components/dashboardStyles";
+import { useDashboardStyles } from "@/components/dashboardStyles";
 
 import SuperAdminDashboard from "./SuperAdminDashboard";
 import ProductOwnerDashboard from "./ProductOwnerDashboard";
@@ -13,6 +13,7 @@ import DeveloperDashboard from "./DeveloperDashboard";
 export default function DashboardScreen() {
   const { user } = useAuthStore();
   const role = user?.role as UserRole | undefined;
+  const styles = useDashboardStyles();
 
   return (
     <View style={styles.root}>

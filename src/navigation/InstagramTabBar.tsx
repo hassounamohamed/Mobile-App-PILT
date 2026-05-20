@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -9,11 +9,11 @@ import {
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { COLORS } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
+import type { ThemePalette } from "@/constants/colors";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
-// Maps route names to outline/filled icon pairs
 const ICON_MAP: Record<string, { filled: IoniconName; outline: IoniconName }> = {
   Home:     { filled: "home",                outline: "home-outline" },
   Sprints:  { filled: "flash",               outline: "flash-outline" },
@@ -29,12 +29,68 @@ const ICON_MAP: Record<string, { filled: IoniconName; outline: IoniconName }> = 
   Profile:  { filled: "person-circle",       outline: "person-circle-outline" },
 };
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+    container: {
+      flexDirection: "row",
+      backgroundColor: c.backgroundSecondary,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: c.inputBorder,
+      paddingTop: 10,
+      ...Platform.select({
+        ios: {
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.12,
+          shadowRadius: 12,
+        },
+        android: { elevation: 16 },
+      }),
+    },
+    tab: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: 4,
+      gap: 4,
+    },
+    centerTab: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    centerPill: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: c.primary,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 4,
+      shadowColor: c.primary,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.35,
+      shadowRadius: 10,
+      elevation: 8,
+    },
+    dot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: c.primary,
+      marginTop: 2,
+    },
+  });
+}
+
 export const InstagramTabBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
 }) => {
   const insets = useSafeAreaInsets();
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom || 10 }]}>
@@ -61,7 +117,6 @@ export const InstagramTabBar: React.FC<BottomTabBarProps> = ({
           navigation.emit({ type: "tabLongPress", target: route.key });
         };
 
-        // Center button (index 2 of 5) gets a special pill style
         const isCenterBtn =
           state.routes.length === 5 && index === 2;
 
@@ -89,7 +144,7 @@ export const InstagramTabBar: React.FC<BottomTabBarProps> = ({
                 <Ionicons
                   name={isFocused ? icons.filled : icons.outline}
                   size={26}
-                  color={isFocused ? COLORS.primary : COLORS.textSecondary}
+                  color={isFocused ? c.primary : c.textSecondary}
                 />
                 {isFocused && <View style={styles.dot} />}
               </>
@@ -100,55 +155,3 @@ export const InstagramTabBar: React.FC<BottomTabBarProps> = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: "row",
-    backgroundColor: "#0d1117",
-    borderTopWidth: 0.5,
-    borderTopColor: "rgba(255,255,255,0.08)",
-    paddingTop: 10,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: -4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 12,
-      },
-      android: { elevation: 16 },
-    }),
-  },
-  tab: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 4,
-    gap: 4,
-  },
-  centerTab: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  centerPill: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-    shadowColor: COLORS.primary,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.6,
-    shadowRadius: 10,
-    elevation: 8,
-  },
-  dot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: COLORS.primary,
-    marginTop: 2,
-  },
-});

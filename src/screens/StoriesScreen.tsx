@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -12,7 +12,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { useAuthStore } from "@/context/authStore";
 import { projectsService } from "@/services/projects";
 import { storiesService } from "@/services/stories";
@@ -45,7 +47,144 @@ function asArray<T>(value: unknown): T[] {
   return [];
 }
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.background },
+  pageTitle: {
+    color: c.text,
+    fontSize: SIZES.font2xl,
+    fontWeight: "800",
+    marginBottom: SIZES.lg,
+  },
+  pageSubtitle: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    marginTop: -SIZES.md,
+    marginBottom: SIZES.md,
+  },
+  projectPicker: { marginBottom: SIZES.md },
+  projectChip: {
+    paddingHorizontal: SIZES.md,
+    paddingVertical: SIZES.sm,
+    borderRadius: SIZES.radiusSm,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    backgroundColor: c.backgroundSecondary,
+    marginRight: SIZES.sm,
+  },
+  projectChipActive: {
+    backgroundColor: c.primary,
+    borderColor: c.primary,
+  },
+  projectChipText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+  },
+  projectChipTextActive: { color: c.white },
+
+  toggleRow: {
+    flexDirection: "row",
+    backgroundColor: c.backgroundSecondary,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    padding: 4,
+    marginBottom: SIZES.sm,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: SIZES.sm,
+    borderRadius: SIZES.radiusMd,
+    alignItems: "center",
+  },
+  toggleBtnActive: { backgroundColor: c.primary },
+  toggleBtnText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+  },
+  toggleBtnTextActive: { color: c.white },
+
+  countText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginBottom: SIZES.md,
+  },
+  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
+  emptyText: { color: c.textSecondary, fontSize: SIZES.fontBase },
+
+  storyCard: {
+    backgroundColor: c.backgroundSecondary,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    padding: SIZES.md,
+    marginBottom: SIZES.sm,
+  },
+  storyHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SIZES.sm,
+    marginBottom: SIZES.sm,
+  },
+  priorityDot: { width: 10, height: 10, borderRadius: 5 },
+  storyTitle: {
+    flex: 1,
+    color: c.text,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+  },
+  pointsBadge: {
+    backgroundColor: `${c.primary}22`,
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 2,
+    borderRadius: SIZES.radiusSm,
+  },
+  pointsText: {
+    color: c.primary,
+    fontSize: SIZES.fontXs,
+    fontWeight: "700",
+  },
+  storyMetaRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SIZES.sm,
+    marginBottom: SIZES.sm,
+  },
+  statusBadge: {
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 4,
+    borderRadius: SIZES.radiusSm,
+    borderWidth: 1,
+  },
+  statusBadgeText: { fontSize: SIZES.fontXs, fontWeight: "700" },
+  priorityBadge: {
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 4,
+    borderRadius: SIZES.radiusSm,
+    borderWidth: 1,
+  },
+  priorityBadgeText: { fontSize: SIZES.fontXs, fontWeight: "700" },
+  storyDesc: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginBottom: SIZES.sm,
+  },
+  assigneeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    marginBottom: SIZES.sm,
+  },
+  assigneeText: { color: c.textSecondary, fontSize: SIZES.fontXs },
+});
+}
+
 export default function StoriesScreen() {
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const userId = parseInt(user?.id ?? "0");
@@ -101,7 +240,7 @@ export default function StoriesScreen() {
 
   const displayed =
     storyFilter === "mine"
-      ? stories.filter((s) => s.assignee?.id === userId)
+      ? stories.filter((s) => (s.assignee_id ?? s.assignee?.id) === userId)
       : stories;
 
   return (
@@ -120,7 +259,7 @@ export default function StoriesScreen() {
               setRefreshing(true);
               loadProjects();
             }}
-            tintColor={COLORS.primary}
+            tintColor={c.primary}
           />
         }
       >
@@ -153,7 +292,7 @@ export default function StoriesScreen() {
 
         {loadingProjects ? (
           <ActivityIndicator
-            color={COLORS.primary}
+            color={c.primary}
             style={{ marginTop: SIZES.xxl }}
           />
         ) : projects.length === 0 ? (
@@ -195,7 +334,7 @@ export default function StoriesScreen() {
 
             {loadingStories ? (
               <ActivityIndicator
-                color={COLORS.primary}
+                color={c.primary}
                 style={{ marginTop: SIZES.xl }}
               />
             ) : displayed.length === 0 ? (
@@ -203,7 +342,7 @@ export default function StoriesScreen() {
                 <Ionicons
                   name="document-text-outline"
                   size={48}
-                  color={COLORS.textSecondary}
+                  color={c.textSecondary}
                 />
                 <Text style={styles.emptyText}>
                   {storyFilter === "mine"
@@ -214,7 +353,7 @@ export default function StoriesScreen() {
             ) : (
               displayed.map((story) => {
                 const pm = PRIORITY_META[story.priorite] ?? {
-                  color: COLORS.textSecondary,
+                  color: c.textSecondary,
                   label: story.priorite,
                 };
                 const statusColor =
@@ -288,18 +427,18 @@ export default function StoriesScreen() {
                       </Text>
                     )}
 
-                    {story.assignee && (
+                    {story.assignee || story.assignee_id ? (
                       <View style={styles.assigneeRow}>
                         <Ionicons
                           name="person-outline"
                           size={12}
-                          color={COLORS.textSecondary}
+                          color={c.textSecondary}
                         />
                         <Text style={styles.assigneeText}>
-                          {story.assignee.nom}
+                          {story.assignee?.nom ?? `Dev #${story.assignee_id}`}
                         </Text>
                       </View>
-                    )}
+                    ) : null}
                   </View>
                 );
               })
@@ -311,134 +450,4 @@ export default function StoriesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
-  pageTitle: {
-    color: COLORS.text,
-    fontSize: SIZES.font2xl,
-    fontWeight: "800",
-    marginBottom: SIZES.lg,
-  },
-  pageSubtitle: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    marginTop: -SIZES.md,
-    marginBottom: SIZES.md,
-  },
-  projectPicker: { marginBottom: SIZES.md },
-  projectChip: {
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusSm,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    backgroundColor: COLORS.backgroundSecondary,
-    marginRight: SIZES.sm,
-  },
-  projectChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  projectChipText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-  },
-  projectChipTextActive: { color: COLORS.white },
 
-  toggleRow: {
-    flexDirection: "row",
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    padding: 4,
-    marginBottom: SIZES.sm,
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusMd,
-    alignItems: "center",
-  },
-  toggleBtnActive: { backgroundColor: COLORS.primary },
-  toggleBtnText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-  },
-  toggleBtnTextActive: { color: COLORS.white },
-
-  countText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginBottom: SIZES.md,
-  },
-  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
-  emptyText: { color: COLORS.textSecondary, fontSize: SIZES.fontBase },
-
-  storyCard: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    padding: SIZES.md,
-    marginBottom: SIZES.sm,
-  },
-  storyHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SIZES.sm,
-    marginBottom: SIZES.sm,
-  },
-  priorityDot: { width: 10, height: 10, borderRadius: 5 },
-  storyTitle: {
-    flex: 1,
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-  },
-  pointsBadge: {
-    backgroundColor: `${COLORS.primary}22`,
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 2,
-    borderRadius: SIZES.radiusSm,
-  },
-  pointsText: {
-    color: COLORS.primary,
-    fontSize: SIZES.fontXs,
-    fontWeight: "700",
-  },
-  storyMetaRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: SIZES.sm,
-    marginBottom: SIZES.sm,
-  },
-  statusBadge: {
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 4,
-    borderRadius: SIZES.radiusSm,
-    borderWidth: 1,
-  },
-  statusBadgeText: { fontSize: SIZES.fontXs, fontWeight: "700" },
-  priorityBadge: {
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 4,
-    borderRadius: SIZES.radiusSm,
-    borderWidth: 1,
-  },
-  priorityBadgeText: { fontSize: SIZES.fontXs, fontWeight: "700" },
-  storyDesc: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginBottom: SIZES.sm,
-  },
-  assigneeRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: SIZES.sm,
-  },
-  assigneeText: { color: COLORS.textSecondary, fontSize: SIZES.fontXs },
-});

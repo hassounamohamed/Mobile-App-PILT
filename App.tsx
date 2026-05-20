@@ -1,22 +1,30 @@
-import React, { useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
-  DarkTheme as NavigationDarkTheme,
-  DefaultTheme as NavigationDefaultTheme,
   LinkingOptions,
   NavigationContainer,
+  DarkTheme as NavigationDarkTheme,
+  DefaultTheme as NavigationDefaultTheme,
 } from "@react-navigation/native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import * as Notifications from "expo-notifications";
 import * as SplashScreen from "expo-splash-screen";
+import React, { useEffect, useState } from "react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { COLORS, setGlobalThemeMode } from "./src/constants/colors";
 import { useAuthStore } from "./src/context/authStore";
 import { useThemeStore } from "./src/context/themeStore";
+import { NotificationPermissionScreen } from "./src/screens/NotificationPermissionScreen";
 
 SplashScreen.preventAutoHideAsync();
+
+const NOTIFICATION_PROMPT_KEY = "notification-permission-prompted";
 
 export default function App() {
   // Wait for Zustand persist rehydration
   const [authHydrated, setAuthHydrated] = useState(false);
   const [themeHydrated, setThemeHydrated] = useState(false);
+  const [notificationPromptChecked, setNotificationPromptChecked] = useState(false);
+  const [showNotificationPrompt, setShowNotificationPrompt] = useState(false);
+  const [isRequestingNotification, setIsRequestingNotification] = useState(false);
   const isDarkMode = useThemeStore((state) => state.isDarkMode);
 
   const AppNavigator = authHydrated && themeHydrated
@@ -54,7 +62,44 @@ export default function App() {
     }
   }, [authHydrated, themeHydrated]);
 
-  if (!authHydrated || !themeHydrated || !AppNavigator) {
+  useEffect(() => {
+    if (!authHydrated || !themeHydrated) return;
+    let isMounted = true;
+
+    const checkNotificationPrompt = async () => {
+      const [settings, prompted] = await Promise.all([
+        Notifications.getPermissionsAsync(),
+        AsyncStorage.getItem(NOTIFICATION_PROMPT_KEY),
+      ]);
+
+      if (!isMounted) return;
+
+      if (settings.status !== "granted" && !prompted) {
+        setShowNotificationPrompt(true);
+      }
+      setNotificationPromptChecked(true);
+    };
+
+    void checkNotificationPrompt();
+    return () => {
+      isMounted = false;
+    };
+  }, [authHydrated, themeHydrated]);
+
+  const handleEnableNotifications = async () => {
+    setIsRequestingNotification(true);
+    await AsyncStorage.setItem(NOTIFICATION_PROMPT_KEY, "1");
+    await Notifications.requestPermissionsAsync();
+    setIsRequestingNotification(false);
+    setShowNotificationPrompt(false);
+  };
+
+  const handleSkipNotifications = async () => {
+    await AsyncStorage.setItem(NOTIFICATION_PROMPT_KEY, "1");
+    setShowNotificationPrompt(false);
+  };
+
+  if (!authHydrated || !themeHydrated || !AppNavigator || !notificationPromptChecked) {
     return null;
   }
 
@@ -94,9 +139,17 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <NavigationContainer theme={navigationTheme} linking={linking}>
-        <AppNavigator />
-      </NavigationContainer>
+      {showNotificationPrompt ? (
+        <NotificationPermissionScreen
+          onEnable={handleEnableNotifications}
+          onSkip={handleSkipNotifications}
+          loading={isRequestingNotification}
+        />
+      ) : (
+        <NavigationContainer theme={navigationTheme} linking={linking}>
+          <AppNavigator />
+        </NavigationContainer>
+      )}
     </SafeAreaProvider>
   );
 }

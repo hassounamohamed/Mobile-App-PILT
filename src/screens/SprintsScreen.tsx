@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -14,7 +14,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { useAuthStore } from "@/context/authStore";
 import { projectsService } from "@/services/projects";
 import { sprintsService } from "@/services/sprints";
@@ -65,7 +67,270 @@ function formatDate(date?: string) {
   return parsed.toLocaleDateString("fr-FR");
 }
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+  root: { flex: 1, backgroundColor: c.background },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SIZES.lg,
+  },
+  pageTitle: { color: c.text, fontSize: SIZES.font2xl, fontWeight: "800" },
+  pageSubtitle: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    marginTop: 2,
+  },
+  createBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SIZES.sm,
+    backgroundColor: c.primary,
+    paddingHorizontal: SIZES.md,
+    paddingVertical: SIZES.sm,
+    borderRadius: SIZES.radiusMd,
+  },
+  createBtnText: {
+    color: c.white,
+    fontSize: SIZES.fontSm,
+    fontWeight: "700",
+  },
+  projectPicker: { marginBottom: SIZES.md },
+  projectChip: {
+    paddingHorizontal: SIZES.md,
+    paddingVertical: SIZES.sm,
+    borderRadius: SIZES.radiusSm,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    backgroundColor: c.backgroundSecondary,
+    marginRight: SIZES.sm,
+  },
+  projectChipActive: {
+    backgroundColor: c.primary,
+    borderColor: c.primary,
+  },
+  projectChipText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+  },
+  projectChipTextActive: { color: c.white },
+  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
+  emptyText: { color: c.textSecondary, fontSize: SIZES.fontBase },
+  sprintCard: {
+    backgroundColor: c.backgroundSecondary,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    padding: SIZES.lg,
+    marginBottom: SIZES.md,
+  },
+  sprintCardActive: { borderColor: "#f59e0b44" },
+  sprintHeader: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: SIZES.md,
+    marginBottom: SIZES.md,
+  },
+  statusIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: SIZES.radiusMd,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  sprintTitleWrap: { flex: 1 },
+  sprintName: {
+    color: c.text,
+    fontSize: SIZES.fontBase,
+    fontWeight: "700",
+  },
+  sprintObjectif: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginTop: 2,
+  },
+  statusPill: {
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 3,
+    borderRadius: SIZES.radiusSm,
+  },
+  statusText: { fontSize: SIZES.fontXs, fontWeight: "700" },
+  metaRow: { flexDirection: "row", gap: SIZES.lg, marginBottom: SIZES.sm },
+  metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
+  metaText: { color: c.textSecondary, fontSize: SIZES.fontXs },
+  cardHint: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginTop: SIZES.sm,
+  },
+  actionsRow: {
+    flexDirection: "row",
+    gap: SIZES.md,
+    paddingTop: SIZES.sm,
+    borderTopWidth: 1,
+    borderTopColor: c.inputBorder,
+  },
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingVertical: SIZES.sm,
+  },
+  actionBtnText: { fontSize: SIZES.fontSm, fontWeight: "700" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.7)",
+    justifyContent: "flex-end",
+  },
+  modalCard: {
+    backgroundColor: c.backgroundSecondary,
+    borderTopLeftRadius: SIZES.radiusXl,
+    borderTopRightRadius: SIZES.radiusXl,
+    padding: SIZES.xl,
+    paddingBottom: SIZES.xxl,
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SIZES.lg,
+  },
+  modalTitle: { color: c.text, fontSize: SIZES.fontLg, fontWeight: "700" },
+  modalSubtitle: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginTop: 2,
+  },
+  sprintDetailMeta: {
+    backgroundColor: c.background,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    gap: 4,
+    marginBottom: SIZES.md,
+  },
+  metricGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: SIZES.sm,
+  },
+  metricCard: {
+    width: "48%",
+    backgroundColor: c.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    borderRadius: SIZES.radiusSm,
+    padding: SIZES.sm,
+  },
+  metricLabel: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginBottom: 2,
+  },
+  metricValue: {
+    color: c.text,
+    fontSize: SIZES.fontSm,
+    fontWeight: "700",
+  },
+  objectiveBox: {
+    marginTop: SIZES.md,
+    borderTopWidth: 1,
+    borderTopColor: c.inputBorder,
+    paddingTop: SIZES.md,
+  },
+  objectiveTitle: {
+    color: c.text,
+    fontSize: SIZES.fontSm,
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+  objectiveText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+  },
+  sprintDetailText: { color: c.textSecondary, fontSize: SIZES.fontSm },
+  detailList: { maxHeight: 320 },
+  detailStoryCard: {
+    backgroundColor: c.background,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    marginBottom: SIZES.sm,
+  },
+  detailStoryHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: SIZES.sm,
+    marginBottom: SIZES.sm,
+  },
+  detailStoryRef: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    fontWeight: "700",
+  },
+  storyBadge: {
+    borderWidth: 1,
+    borderRadius: SIZES.radiusSm,
+    paddingHorizontal: SIZES.sm,
+    paddingVertical: 2,
+  },
+  storyBadgeText: {
+    fontSize: SIZES.fontXs,
+    fontWeight: "700",
+  },
+  detailStoryTitle: {
+    color: c.text,
+    fontSize: SIZES.fontSm,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  detailStoryDesc: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+    marginBottom: 4,
+  },
+  detailStoryMeta: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontXs,
+  },
+  inputLabel: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    marginBottom: SIZES.sm,
+  },
+  input: {
+    backgroundColor: c.background,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    color: c.text,
+    fontSize: SIZES.fontBase,
+    marginBottom: SIZES.md,
+  },
+  submitBtn: {
+    backgroundColor: c.primary,
+    borderRadius: SIZES.radiusMd,
+    padding: SIZES.md,
+    alignItems: "center",
+    marginTop: SIZES.sm,
+  },
+  submitBtnText: {
+    color: c.white,
+    fontSize: SIZES.fontBase,
+    fontWeight: "700",
+  },
+});
+}
+
 export default function SprintsScreen() {
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const isScrumMaster = user?.role === "Scrum Master";
@@ -226,7 +491,7 @@ export default function SprintsScreen() {
               setRefreshing(true);
               loadProjects();
             }}
-            tintColor={COLORS.primary}
+            tintColor={c.primary}
           />
         }
       >
@@ -240,7 +505,7 @@ export default function SprintsScreen() {
               style={styles.createBtn}
               onPress={() => setShowCreate(true)}
             >
-              <Ionicons name="add" size={20} color={COLORS.white} />
+              <Ionicons name="add" size={20} color={c.white} />
               <Text style={styles.createBtnText}>Nouveau</Text>
             </TouchableOpacity>
           )}
@@ -248,7 +513,7 @@ export default function SprintsScreen() {
 
         {loadingProjects ? (
           <ActivityIndicator
-            color={COLORS.primary}
+            color={c.primary}
             style={{ marginTop: SIZES.xxl }}
           />
         ) : projects.length === 0 ? (
@@ -286,7 +551,7 @@ export default function SprintsScreen() {
 
             {loadingS ? (
               <ActivityIndicator
-                color={COLORS.primary}
+                color={c.primary}
                 style={{ marginTop: SIZES.xl }}
               />
             ) : sprints.length === 0 ? (
@@ -294,7 +559,7 @@ export default function SprintsScreen() {
                 <Ionicons
                   name="flash-outline"
                   size={48}
-                  color={COLORS.textSecondary}
+                  color={c.textSecondary}
                 />
                 <Text style={styles.emptyText}>Aucun sprint</Text>
               </View>
@@ -302,7 +567,7 @@ export default function SprintsScreen() {
               sprints.map((sprint) => {
                 const sm = STATUS_META[sprint.statut] ?? {
                   label: sprint.statut,
-                  color: COLORS.textSecondary,
+                  color: c.textSecondary,
                   icon: "time-outline" as const,
                 };
                 return (
@@ -350,7 +615,7 @@ export default function SprintsScreen() {
                           <Ionicons
                             name="calendar-outline"
                             size={12}
-                            color={COLORS.textSecondary}
+                            color={c.textSecondary}
                           />
                           <Text style={styles.metaText}>
                             {sprint.date_debut} → {sprint.date_fin}
@@ -361,7 +626,7 @@ export default function SprintsScreen() {
                         <Ionicons
                           name="document-text-outline"
                           size={12}
-                          color={COLORS.textSecondary}
+                          color={c.textSecondary}
                         />
                         <Text style={styles.metaText}>
                           {sprint.nb_user_stories ?? 0} stories
@@ -422,7 +687,7 @@ export default function SprintsScreen() {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Nouveau sprint</Text>
               <TouchableOpacity onPress={() => setShowCreate(false)}>
-                <Ionicons name="close" size={24} color={COLORS.textSecondary} />
+                <Ionicons name="close" size={24} color={c.textSecondary} />
               </TouchableOpacity>
             </View>
             {[
@@ -458,7 +723,7 @@ export default function SprintsScreen() {
                   value={field.value}
                   onChangeText={field.setter}
                   placeholder={field.placeholder}
-                  placeholderTextColor={COLORS.textSecondary}
+                  placeholderTextColor={c.textSecondary}
                 />
               </View>
             ))}
@@ -468,7 +733,7 @@ export default function SprintsScreen() {
               disabled={creating}
             >
               {creating ? (
-                <ActivityIndicator color={COLORS.white} size="small" />
+                <ActivityIndicator color={c.white} size="small" />
               ) : (
                 <Text style={styles.submitBtnText}>Créer le sprint</Text>
               )}
@@ -490,13 +755,13 @@ export default function SprintsScreen() {
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setShowSprintDetail(false)}>
-                <Ionicons name="close" size={24} color={COLORS.textSecondary} />
+                <Ionicons name="close" size={24} color={c.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {loadingSprintDetail ? (
               <ActivityIndicator
-                color={COLORS.primary}
+                color={c.primary}
                 style={{ marginVertical: SIZES.xl }}
               />
             ) : (
@@ -617,9 +882,9 @@ export default function SprintsScreen() {
                             ? `${story.points} points`
                             : "Sans estimation"}
                         </Text>
-                        {story.assignee ? (
+                        {story.assignee || story.assignee_id ? (
                           <Text style={styles.detailStoryMeta}>
-                            Assignée à {story.assignee.nom}
+                            Assignée à {story.assignee?.nom ?? `Dev #${story.assignee_id}`}
                           </Text>
                         ) : null}
                       </View>
@@ -635,260 +900,4 @@ export default function SprintsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: COLORS.background },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SIZES.lg,
-  },
-  pageTitle: { color: COLORS.text, fontSize: SIZES.font2xl, fontWeight: "800" },
-  pageSubtitle: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    marginTop: 2,
-  },
-  createBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SIZES.sm,
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusMd,
-  },
-  createBtnText: {
-    color: COLORS.white,
-    fontSize: SIZES.fontSm,
-    fontWeight: "700",
-  },
-  projectPicker: { marginBottom: SIZES.md },
-  projectChip: {
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusSm,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    backgroundColor: COLORS.backgroundSecondary,
-    marginRight: SIZES.sm,
-  },
-  projectChipActive: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  projectChipText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-  },
-  projectChipTextActive: { color: COLORS.white },
-  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
-  emptyText: { color: COLORS.textSecondary, fontSize: SIZES.fontBase },
-  sprintCard: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    padding: SIZES.lg,
-    marginBottom: SIZES.md,
-  },
-  sprintCardActive: { borderColor: "#f59e0b44" },
-  sprintHeader: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: SIZES.md,
-    marginBottom: SIZES.md,
-  },
-  statusIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: SIZES.radiusMd,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  sprintTitleWrap: { flex: 1 },
-  sprintName: {
-    color: COLORS.text,
-    fontSize: SIZES.fontBase,
-    fontWeight: "700",
-  },
-  sprintObjectif: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginTop: 2,
-  },
-  statusPill: {
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 3,
-    borderRadius: SIZES.radiusSm,
-  },
-  statusText: { fontSize: SIZES.fontXs, fontWeight: "700" },
-  metaRow: { flexDirection: "row", gap: SIZES.lg, marginBottom: SIZES.sm },
-  metaItem: { flexDirection: "row", alignItems: "center", gap: 4 },
-  metaText: { color: COLORS.textSecondary, fontSize: SIZES.fontXs },
-  cardHint: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginTop: SIZES.sm,
-  },
-  actionsRow: {
-    flexDirection: "row",
-    gap: SIZES.md,
-    paddingTop: SIZES.sm,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.inputBorder,
-  },
-  actionBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingVertical: SIZES.sm,
-  },
-  actionBtnText: { fontSize: SIZES.fontSm, fontWeight: "700" },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "flex-end",
-  },
-  modalCard: {
-    backgroundColor: COLORS.backgroundSecondary,
-    borderTopLeftRadius: SIZES.radiusXl,
-    borderTopRightRadius: SIZES.radiusXl,
-    padding: SIZES.xl,
-    paddingBottom: SIZES.xxl,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SIZES.lg,
-  },
-  modalTitle: { color: COLORS.text, fontSize: SIZES.fontLg, fontWeight: "700" },
-  modalSubtitle: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginTop: 2,
-  },
-  sprintDetailMeta: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    gap: 4,
-    marginBottom: SIZES.md,
-  },
-  metricGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: SIZES.sm,
-  },
-  metricCard: {
-    width: "48%",
-    backgroundColor: COLORS.backgroundSecondary,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    borderRadius: SIZES.radiusSm,
-    padding: SIZES.sm,
-  },
-  metricLabel: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginBottom: 2,
-  },
-  metricValue: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "700",
-  },
-  objectiveBox: {
-    marginTop: SIZES.md,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.inputBorder,
-    paddingTop: SIZES.md,
-  },
-  objectiveTitle: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "700",
-    marginBottom: 2,
-  },
-  objectiveText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-  },
-  sprintDetailText: { color: COLORS.textSecondary, fontSize: SIZES.fontSm },
-  detailList: { maxHeight: 320 },
-  detailStoryCard: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    marginBottom: SIZES.sm,
-  },
-  detailStoryHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SIZES.sm,
-    marginBottom: SIZES.sm,
-  },
-  detailStoryRef: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    fontWeight: "700",
-  },
-  storyBadge: {
-    borderWidth: 1,
-    borderRadius: SIZES.radiusSm,
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 2,
-  },
-  storyBadgeText: {
-    fontSize: SIZES.fontXs,
-    fontWeight: "700",
-  },
-  detailStoryTitle: {
-    color: COLORS.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "700",
-    marginBottom: 4,
-  },
-  detailStoryDesc: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginBottom: 4,
-  },
-  detailStoryMeta: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontXs,
-  },
-  inputLabel: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    marginBottom: SIZES.sm,
-  },
-  input: {
-    backgroundColor: COLORS.background,
-    borderWidth: 1,
-    borderColor: COLORS.inputBorder,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    color: COLORS.text,
-    fontSize: SIZES.fontBase,
-    marginBottom: SIZES.md,
-  },
-  submitBtn: {
-    backgroundColor: COLORS.primary,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    alignItems: "center",
-    marginTop: SIZES.sm,
-  },
-  submitBtnText: {
-    color: COLORS.white,
-    fontSize: SIZES.fontBase,
-    fontWeight: "700",
-  },
-});
+

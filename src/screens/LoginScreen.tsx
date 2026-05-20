@@ -3,14 +3,16 @@ import { Card } from "@/components/ui/Card";
 import { Checkbox } from "@/components/ui/Checkbox";
 import { SocialButton } from "@/components/ui/SocialButton";
 import { TextInputField } from "@/components/ui/TextInputField";
-import { COLORS, SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { SIZES } from "@/constants";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { useAuthStore } from "@/context/authStore";
 import { AuthStackParamList } from "@/navigation/types";
 import { authApi } from "@/services/auth";
 import { Ionicons } from "@expo/vector-icons";
 import * as AuthSession from "expo-auth-session";
 import * as Linking from "expo-linking";
-import React, { useCallback, useState } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import * as WebBrowser from "expo-web-browser";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useNavigation } from "@react-navigation/native";
@@ -25,7 +27,124 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "@/hooks/useAuth";
 
+function createStyles(c: ThemePalette) {
+  return StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: c.background,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: SIZES.lg,
+    paddingVertical: SIZES.xl,
+  },
+  header: {
+    marginBottom: SIZES.xl,
+    alignItems: "center",
+  },
+  logoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: SIZES.xl,
+  },
+  logoImage: {
+    height: 150,
+    marginBottom: SIZES.sm,
+   
+  },
+  logoText: {
+    fontSize: SIZES.fontXl,
+    fontWeight: "700",
+    color: c.text,
+    marginLeft: SIZES.sm,
+    letterSpacing: 0.5,
+  },
+  title: {
+    fontSize: SIZES.font2xl,
+    fontWeight: "700",
+    color: c.text,
+    marginBottom: SIZES.sm,
+    letterSpacing: 0.5,
+  },
+  subtitle: {
+    fontSize: SIZES.fontBase,
+    color: c.textSecondary,
+    fontWeight: "400",
+  },
+  errorCard: {
+    marginBottom: SIZES.lg,
+    backgroundColor: c.background,
+    borderColor: c.error,
+  },
+  errorContent: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  errorText: {
+    color: c.error,
+    fontSize: SIZES.fontSm,
+    marginLeft: SIZES.md,
+    flex: 1,
+  },
+  form: {
+    marginBottom: SIZES.xl,
+  },
+  formFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SIZES.lg,
+    
+  },
+  forgotPasswordLink: {
+    color: c.primary,
+    fontSize: SIZES.fontSm,
+    fontWeight: "600",
+  },
+  dividerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: SIZES.xl,
+  },
+  divider: {
+    flex: 1,
+    height: 1,
+    backgroundColor: c.inputBorder,
+  },
+  dividerText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontSm,
+    marginHorizontal: SIZES.md,
+    fontWeight: "500",
+  },
+  socialContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: SIZES.md,
+    marginBottom: SIZES.xl,
+  },
+  signupContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  signupText: {
+    color: c.textSecondary,
+    fontSize: SIZES.fontBase,
+    fontWeight: "400",
+  },
+  signupLink: {
+    color: c.primary,
+    fontSize: SIZES.fontBase,
+    fontWeight: "600",
+  },
+});
+}
+
 export const LoginScreen = () => {
+  const c = useThemePalette();
+  const styles = useMemo(() => createStyles(c), [c]);
+
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const insets = useSafeAreaInsets();
@@ -69,11 +188,11 @@ export const LoginScreen = () => {
 
     try {
       clearError();
-      await login(email, password);
+      await login(email, password, rememberMe);
     } catch (err) {
       console.error("Login error:", err);
     }
-  }, [email, password, validateForm, login, clearError]);
+  }, [email, password, rememberMe, validateForm, login, clearError]);
 
   const getSingleParam = useCallback((value: unknown): string => {
     if (Array.isArray(value)) {
@@ -213,7 +332,6 @@ export const LoginScreen = () => {
               style={styles.logoImage}
               resizeMode="contain"
             />
-            <Text style={styles.logoText}>FlowPilot</Text>
           </View>
           <Text style={styles.title}>Welcome back</Text>
           <Text style={styles.subtitle}>
@@ -228,7 +346,7 @@ export const LoginScreen = () => {
               <Ionicons
                 name="alert-circle"
                 size={SIZES.iconMd}
-                color={COLORS.error}
+                color={c.error}
               />
               <Text style={styles.errorText}>{error}</Text>
             </View>
@@ -306,111 +424,4 @@ export const LoginScreen = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: SIZES.lg,
-    paddingVertical: SIZES.xl,
-  },
-  header: {
-    marginBottom: SIZES.xl,
-  },
-  logoContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: SIZES.xl,
-  },
-  logoImage: {
-    width: 38,
-    height: 38,
-  },
-  logoText: {
-    fontSize: SIZES.fontXl,
-    fontWeight: "700",
-    color: COLORS.text,
-    marginLeft: SIZES.sm,
-    letterSpacing: 0.5,
-  },
-  title: {
-    fontSize: SIZES.font2xl,
-    fontWeight: "700",
-    color: COLORS.text,
-    marginBottom: SIZES.sm,
-    letterSpacing: 0.5,
-  },
-  subtitle: {
-    fontSize: SIZES.fontBase,
-    color: COLORS.textSecondary,
-    fontWeight: "400",
-  },
-  errorCard: {
-    marginBottom: SIZES.lg,
-    backgroundColor: COLORS.background,
-    borderColor: COLORS.error,
-  },
-  errorContent: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  errorText: {
-    color: COLORS.error,
-    fontSize: SIZES.fontSm,
-    marginLeft: SIZES.md,
-    flex: 1,
-  },
-  form: {
-    marginBottom: SIZES.xl,
-  },
-  formFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SIZES.lg,
-  },
-  forgotPasswordLink: {
-    color: COLORS.primary,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-  },
-  dividerContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: SIZES.xl,
-  },
-  divider: {
-    flex: 1,
-    height: 1,
-    backgroundColor: COLORS.inputBorder,
-  },
-  dividerText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontSm,
-    marginHorizontal: SIZES.md,
-    fontWeight: "500",
-  },
-  socialContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: SIZES.md,
-    marginBottom: SIZES.xl,
-  },
-  signupContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  signupText: {
-    color: COLORS.textSecondary,
-    fontSize: SIZES.fontBase,
-    fontWeight: "400",
-  },
-  signupLink: {
-    color: COLORS.primary,
-    fontSize: SIZES.fontBase,
-    fontWeight: "600",
-  },
-});
+

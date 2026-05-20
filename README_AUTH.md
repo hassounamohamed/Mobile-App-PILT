@@ -1,6 +1,6 @@
 # 🚀 Mobile App - Authentication System
 
-> A **pixel-perfect, production-ready** React Native/Expo authentication system compatible with the PILT platform.
+> A **pixel-perfect, production-ready** React Native/Expo authentication system compatible with the FlowPilot platform.
 
 ## Overview
 
@@ -9,7 +9,7 @@ This project includes a complete authentication system with 4 screens, reusable 
 ### ✨ Key Features
 
 - ✅ **4 Complete Screens**: Login, Register, Forgot Password, Select Role
-- ✅ **Beautiful UI**: Pixel-perfect PILT platform design
+- ✅ **Beautiful UI**: Pixel-perfect FlowPilot platform design
 - ✅ **Form Validation**: Real-time validation with error messaging
 - ✅ **State Management**: Zustand with AsyncStorage persistence
 - ✅ **Type Safety**: Full TypeScript coverage
@@ -84,7 +84,7 @@ app/
 
 ## 🎨 Design System
 
-**Colors** (from PILT Platform):
+**Colors** (from FlowPilot Platform):
 
 - Primary: `#0066FF` (Bright Blue)
 - Background: `#0F1319` (Dark)
@@ -275,7 +275,7 @@ For questions or issues:
 
 ## 📄 License
 
-This project is part of the PILT platform integration.
+This project is part of the FlowPilot platform integration.
 
 ---
 
