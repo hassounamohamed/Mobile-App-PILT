@@ -28,12 +28,14 @@ export type DeveloperTabParamList = {
   Sprints: undefined;
   Stories: undefined;
   Tests: undefined;
+  Reports: undefined;
   Profile: undefined;
 };
 
 export type ProductOwnerTabParamList = {
   Home: undefined;
   Projects: undefined;
+  CahierTest: undefined;
   Backlog: undefined;
   Reports: undefined;
   Profile: undefined;
@@ -42,6 +44,7 @@ export type ProductOwnerTabParamList = {
 export type QATabParamList = {
   Home: undefined;
   Tests: undefined;
+  Anomalies: undefined;
   Reports: undefined;
   Sprints: undefined;
   Profile: undefined;
@@ -49,6 +52,8 @@ export type QATabParamList = {
 
 export type ScrumMasterTabParamList = {
   Home: undefined;
+  CahierTest: undefined;
+  Reports: undefined;
   Sprints: undefined;
   Backlog: undefined;
   Team: undefined;

@@ -1,23 +1,30 @@
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { SIZES } from "@/constants";
-import { useThemePalette } from "@/hooks/useThemePalette";
-import { projectsService } from "@/services/projects";
-import { storiesService } from "@/services/stories";
-import type { ProjetResponse, UserStoryResponse } from "@/types/api";
-import { useDashboardStyles } from "@/components/dashboardStyles";
-import { StatItem, asArray } from "@/utils/DashboardUtils";
 import {
+  EmptyState,
   HeroCard,
+  NotificationBell,
   SectionCard,
   StatCard,
   StatusBadge,
-  EmptyState,
-  NotificationBell,
 } from "@/components/DashboardSharedComponents";
-import { useNotificationRealtime } from "@/hooks/use-notification-realtime";
+import { useDashboardStyles } from "@/components/dashboardStyles";
 import { NotificationsModal } from "@/components/NotificationsModal";
+import { SIZES } from "@/constants";
+import { useNotificationRealtime } from "@/hooks/use-notification-realtime";
+import { useThemePalette } from "@/hooks/useThemePalette";
+import { epicsService, projectsService } from "@/services/projects";
+import { storiesService } from "@/services/stories";
+import type { ProjetResponse } from "@/types/api";
+import { StatItem } from "@/utils/DashboardUtils";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ProductOwnerDashboard() {
   const styles = useDashboardStyles();
@@ -27,7 +34,14 @@ export default function ProductOwnerDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [projects, setProjects] = useState<ProjetResponse[]>([]);
   const [projectStats, setProjectStats] = useState<
-    Record<number, { nb_modules: number; nb_sprints: number }>
+    Record<
+      number,
+      {
+        nb_sprints: number;
+        nb_epics: number;
+        nb_user_stories: number;
+      }
+    >
   >({});
   const [storiesCount, setStoriesCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -41,31 +55,37 @@ export default function ProductOwnerDashboard() {
 
       const statsEntries = await Promise.allSettled(
         safeProjects.map(async (project) => {
-          const [stats, backlog] = await Promise.all([
+          const [stats, epics, backlog] = await Promise.all([
             projectsService.getStats(project.id),
+            epicsService.getByProject(project.id),
             storiesService.getBacklog(project.id),
           ]);
           return {
             projectId: project.id,
-            nb_modules: stats.nb_modules ?? 0,
             nb_sprints: stats.nb_sprints ?? 0,
-            stories: asArray<UserStoryResponse>(backlog).length,
+            nb_epics: epics.length,
+            nb_user_stories: backlog.length,
           };
         }),
       );
 
       const nextStats: Record<
         number,
-        { nb_modules: number; nb_sprints: number }
+        {
+          nb_sprints: number;
+          nb_epics: number;
+          nb_user_stories: number;
+        }
       > = {};
       let totalStories = 0;
       for (const result of statsEntries) {
         if (result.status === "fulfilled") {
           nextStats[result.value.projectId] = {
-            nb_modules: result.value.nb_modules,
             nb_sprints: result.value.nb_sprints,
+            nb_epics: result.value.nb_epics,
+            nb_user_stories: result.value.nb_user_stories,
           };
-          totalStories += result.value.stories;
+          totalStories += result.value.nb_user_stories;
         }
       }
 
@@ -134,7 +154,9 @@ export default function ProductOwnerDashboard() {
         }}
       >
         <View>
-          <Text style={{ color: c.text, fontSize: SIZES.fontXl, fontWeight: "800" }}>
+          <Text
+            style={{ color: c.text, fontSize: SIZES.fontXl, fontWeight: "800" }}
+          >
             Product Owner
           </Text>
           <Text style={{ color: c.textSecondary, fontSize: SIZES.fontSm }}>
@@ -177,7 +199,8 @@ export default function ProductOwnerDashboard() {
               <View style={styles.projectInfo}>
                 <Text style={styles.projectName}>{p.nom}</Text>
                 <Text style={styles.projectDetail}>
-                  {projectStats[p.id]?.nb_modules ?? 0} modules ·{" "}
+                  {projectStats[p.id]?.nb_epics ?? 0} epics ·{" "}
+                  {projectStats[p.id]?.nb_user_stories ?? 0} user stories ·{" "}
                   {projectStats[p.id]?.nb_sprints ?? 0} sprints
                 </Text>
               </View>

@@ -162,17 +162,11 @@ export default function DeveloperDashboard() {
           projs.map(async (project) => {
             const cahier = await cahierTestsService.get(project.id);
             if (!cahier) return null;
-
-            const casTests = await cahierTestsService.listCasTests(
-              project.id,
-              cahier.id,
-            );
-
             return {
               projectId: project.id,
               projectName: project.nom,
               cahierId: cahier.id,
-              casTests,
+              casTestsCount: cahier.nb_cas_tests ?? 0,
             };
           }),
         ),
@@ -258,29 +252,9 @@ export default function DeveloperDashboard() {
 
       for (const result of cahierResults) {
         if (result.status !== "fulfilled" || !result.value) continue;
-
         const value = result.value;
         nextCahiersCount += 1;
-        nextCasTestsCount += value.casTests.length;
-
-        const latestCases = [...value.casTests]
-          .sort((a, b) => b.id - a.id)
-          .slice(0, 3);
-        for (const cas of latestCases) {
-          const history = await cahierTestsService
-            .getCasTestHistory(value.projectId, value.cahierId, cas.id)
-            .catch(() => []);
-          const latestHistory = history[0];
-          if (!latestHistory) continue;
-
-          nextRecentChanges.push({
-            id: `cas-history-${value.projectId}-${cas.id}-${latestHistory.id}`,
-            title: `Test case updated: ${cas.titre}`,
-            subtitle: value.projectName,
-            time: latestHistory.created_at ?? new Date().toISOString(),
-            icon: "menu_book",
-          });
-        }
+        nextCasTestsCount += value.casTestsCount;
       }
 
       nextTasks.sort((a, b) => {
@@ -301,7 +275,7 @@ export default function DeveloperDashboard() {
         return a.title.localeCompare(b.title);
       });
 
-      setTasks(nextTasks.slice(0, 8));
+      setTasks(nextTasks);
       setRecentChanges(nextRecentChanges.slice(0, 5));
       setActiveSprintsCount(nextActiveSprintsCount);
       setCahiersCount(nextCahiersCount);
@@ -471,7 +445,7 @@ export default function DeveloperDashboard() {
         {tasks.length === 0 ? (
           <EmptyState message="No assigned tasks" />
         ) : (
-          tasks.map((task) => (
+          tasks.slice(0, 8).map((task) => (
             <View key={task.key} style={styles.storyRow}>
               <View style={styles.storyInfo}>
                 <Text style={styles.storyTitle}>{task.title}</Text>

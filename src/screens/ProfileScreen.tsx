@@ -1,17 +1,18 @@
-import { Ionicons } from "@expo/vector-icons";
-import type { ThemePalette } from "@/constants/colors";
 import { SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Switch,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -61,9 +62,7 @@ function ActionItem({ item }: { item: ActionRow }) {
         style={[
           styles.actionIcon,
           {
-            backgroundColor: item.danger
-              ? "#ef444420"
-              : `${c.primary}20`,
+            backgroundColor: item.danger ? "#ef444420" : `${c.primary}20`,
           },
         ]}
       >
@@ -81,18 +80,14 @@ function ActionItem({ item }: { item: ActionRow }) {
           <Text style={styles.actionSublabel}>{item.sublabel}</Text>
         )}
       </View>
-      <Ionicons
-        name="chevron-forward"
-        size={16}
-        color={c.textSecondary}
-      />
+      <Ionicons name="chevron-forward" size={16} color={c.textSecondary} />
     </TouchableOpacity>
   );
 }
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const { user, logout } = useAuthStore();
+  const { user, logout, setUser, forgotPassword } = useAuthStore();
   const { isDarkMode, toggleMode } = useThemeStore();
   const { enabled: notificationsEnabled, setEnabled: setNotificationsEnabled } =
     useNotificationSettingsStore();
@@ -100,8 +95,13 @@ export default function ProfileScreen() {
   const styles = useMemo(() => createStyles(c), [c]);
   const [profile, setProfile] = useState<UtilisateurResponse | null>(null);
   const [loading, setLoading] = useState(true);
+  const [savingProfile, setSavingProfile] = useState(false);
   const [showNotificationSettings, setShowNotificationSettings] =
     useState(false);
+  const [showEditProfile, setShowEditProfile] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
 
   useEffect(() => {
     usersService
@@ -134,13 +134,102 @@ export default function ProfileScreen() {
   const roleCode = displayRole?.code ?? "";
   const roleColor = ROLE_COLORS[roleCode] ?? c.primary;
 
+  function openEditProfile() {
+    const current = profile ?? null;
+    setEditName(current?.nom ?? user?.fullName ?? "");
+    setEditEmail(current?.email ?? user?.email ?? "");
+    setEditPhone(current?.telephone ?? user?.phoneNumber ?? "");
+    setShowEditProfile(true);
+  }
+
+  async function handleSaveProfile() {
+    if (!editName.trim()) {
+      Alert.alert("Validation", "Le nom est requis");
+      return;
+    }
+    if (editEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(editEmail.trim())) {
+      Alert.alert("Validation", "Email invalide");
+      return;
+    }
+
+    setSavingProfile(true);
+    try {
+      const updated = await usersService.updateProfile({
+        nom: editName.trim(),
+        email: editEmail.trim(),
+        telephone: editPhone.trim(),
+      });
+      setProfile(updated);
+      setUser({
+        ...(user ?? {
+          id: updated.id.toString(),
+          email: updated.email,
+          fullName: updated.nom,
+          phoneNumber: updated.telephone ?? "",
+          role: updated.role?.nom as any,
+          createdAt: updated.created_at,
+        }),
+        email: updated.email,
+        fullName: updated.nom,
+        phoneNumber: updated.telephone ?? user?.phoneNumber ?? "",
+      });
+      setShowEditProfile(false);
+      Alert.alert("Succès", "Profil mis à jour avec succès");
+    } catch (err: any) {
+      Alert.alert(
+        "Erreur",
+        err.message ?? "Impossible de mettre à jour le profil",
+      );
+    } finally {
+      setSavingProfile(false);
+    }
+  }
+
+  async function handlePasswordReset() {
+    const targetEmail = displayEmail || user?.email;
+    if (!targetEmail) {
+      Alert.alert(
+        "Erreur",
+        "Aucun email disponible pour réinitialiser le mot de passe",
+      );
+      return;
+    }
+
+    Alert.alert(
+      "Mot de passe",
+      "Nous allons envoyer un lien de réinitialisation à votre adresse email.",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Envoyer",
+          onPress: async () => {
+            try {
+              await forgotPassword(targetEmail);
+              Alert.alert("Succès", "Email de réinitialisation envoyé");
+            } catch (err: any) {
+              Alert.alert(
+                "Erreur",
+                err.message ?? "Impossible d'envoyer l'email",
+              );
+            }
+          },
+        },
+      ],
+    );
+  }
+
   const actions: ActionRow[] = [
+    {
+      icon: "create-outline",
+      label: "Modifier le profil",
+      sublabel: "Nom, email et téléphone",
+      onPress: openEditProfile,
+    },
     {
       icon: "lock-closed-outline",
       label: "Sécurité",
-      sublabel: "Changer le mot de passe",
-      onPress: () =>
-        Alert.alert("Info", "Fonctionnalité disponible prochainement"),
+      sublabel: "Réinitialiser le mot de passe",
+      onPress: handlePasswordReset,
     },
     {
       icon: "notifications-outline",
@@ -267,6 +356,81 @@ export default function ProfileScreen() {
               onPress={() => setShowNotificationSettings(false)}
             >
               <Text style={styles.modalCloseText}>Fermer</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        visible={showEditProfile}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowEditProfile(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>Modifier le profil</Text>
+            <Text style={styles.modalSubtitle}>
+              Mettez à jour votre nom, votre email et votre numéro de téléphone.
+            </Text>
+
+            <Text style={styles.inputLabel}>Nom complet</Text>
+            <TextInput
+              style={styles.input}
+              value={editName}
+              onChangeText={setEditName}
+              placeholder="Votre nom"
+              placeholderTextColor={c.textSecondary}
+            />
+
+            <Text style={styles.inputLabel}>Email</Text>
+            <TextInput
+              style={styles.input}
+              value={editEmail}
+              onChangeText={setEditEmail}
+              placeholder="votre@email.com"
+              placeholderTextColor={c.textSecondary}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+
+            <Text style={styles.inputLabel}>Téléphone</Text>
+            <TextInput
+              style={styles.input}
+              value={editPhone}
+              onChangeText={setEditPhone}
+              placeholder="Numéro de téléphone"
+              placeholderTextColor={c.textSecondary}
+              keyboardType="phone-pad"
+            />
+
+            <TouchableOpacity
+              style={styles.modalCloseBtn}
+              onPress={handleSaveProfile}
+              disabled={savingProfile}
+            >
+              {savingProfile ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.modalCloseText}>Enregistrer</Text>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.modalCloseBtn,
+                {
+                  backgroundColor: c.background,
+                  borderWidth: 1,
+                  borderColor: c.inputBorder,
+                  marginTop: SIZES.sm,
+                },
+              ]}
+              onPress={() => setShowEditProfile(false)}
+            >
+              <Text style={[styles.modalCloseText, { color: c.text }]}>
+                Annuler
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -418,6 +582,22 @@ function createStyles(c: ThemePalette) {
       color: c.text,
       fontSize: SIZES.fontBase,
       fontWeight: "600",
+    },
+    inputLabel: {
+      color: c.textSecondary,
+      fontSize: SIZES.fontSm,
+      marginTop: SIZES.md,
+      marginBottom: SIZES.sm,
+    },
+    input: {
+      backgroundColor: c.background,
+      color: c.text,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+      borderRadius: SIZES.radiusMd,
+      paddingHorizontal: SIZES.md,
+      paddingVertical: SIZES.sm,
+      fontSize: SIZES.fontBase,
     },
     modalCloseBtn: {
       marginTop: SIZES.lg,

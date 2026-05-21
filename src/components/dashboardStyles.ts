@@ -1,8 +1,8 @@
+import { SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
+import { useThemePalette } from "@/hooks/useThemePalette";
 import { useMemo } from "react";
 import { StyleSheet } from "react-native";
-import type { ThemePalette } from "@/constants/colors";
-import { SIZES } from "@/constants";
-import { useThemePalette } from "@/hooks/useThemePalette";
 
 function createDashboardStyles(c: ThemePalette) {
   return StyleSheet.create({
@@ -141,6 +141,112 @@ function createDashboardStyles(c: ThemePalette) {
       color: c.textSecondary,
       fontSize: SIZES.fontXs,
       marginTop: 2,
+    },
+    qualitySummaryGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: SIZES.sm,
+      marginBottom: SIZES.lg,
+    },
+    qualitySummaryItem: {
+      flex: 1,
+      minWidth: "30%",
+      backgroundColor: c.background,
+      borderRadius: SIZES.radiusLg,
+      padding: SIZES.md,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+    },
+    qualitySummaryValue: {
+      color: c.text,
+      fontSize: SIZES.fontLg,
+      fontWeight: "800",
+    },
+    qualitySummaryLabel: {
+      color: c.textSecondary,
+      fontSize: SIZES.fontXs,
+      marginTop: 4,
+    },
+    qualityProgressHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: SIZES.sm,
+    },
+    qualityProgressLabel: {
+      color: c.text,
+      fontSize: SIZES.fontSm,
+      fontWeight: "700",
+    },
+    qualityProgressValue: {
+      color: c.primary,
+      fontSize: SIZES.fontSm,
+      fontWeight: "800",
+    },
+    qualityRateCaption: {
+      color: c.textSecondary,
+      fontSize: SIZES.fontXs,
+      marginBottom: SIZES.sm,
+    },
+    qualityProgressBarBg: {
+      height: 10,
+      borderRadius: SIZES.radiusRound,
+      backgroundColor: c.background,
+      overflow: "hidden",
+      marginBottom: SIZES.lg,
+    },
+    qualityProgressBarFill: {
+      height: "100%",
+      borderRadius: SIZES.radiusRound,
+      backgroundColor: c.primary,
+    },
+    qualityBreakdown: {
+      flexDirection: "row",
+      gap: SIZES.sm,
+      marginBottom: SIZES.lg,
+    },
+    qualityBreakdownItem: {
+      flex: 1,
+      backgroundColor: c.background,
+      borderRadius: SIZES.radiusLg,
+      padding: SIZES.md,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+      alignItems: "center",
+    },
+    qualityBreakdownValue: {
+      color: c.text,
+      fontSize: SIZES.fontBase,
+      fontWeight: "800",
+    },
+    qualityBreakdownLabel: {
+      color: c.textSecondary,
+      fontSize: SIZES.fontXs,
+      marginTop: 4,
+    },
+    qualityProjectList: {
+      gap: SIZES.sm,
+    },
+    qualityProjectRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: c.background,
+      borderRadius: SIZES.radiusLg,
+      padding: SIZES.md,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+    },
+    qualityProjectScore: {
+      color: c.text,
+      fontSize: SIZES.fontSm,
+      fontWeight: "800",
+    },
+    qualityProjectDetail: {
+      color: c.primary,
+      fontSize: SIZES.fontXs,
+      fontWeight: "700",
+      marginTop: 4,
     },
 
     sprintCard: { padding: SIZES.sm },

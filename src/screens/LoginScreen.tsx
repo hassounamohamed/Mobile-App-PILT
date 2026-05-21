@@ -6,6 +6,7 @@ import { TextInputField } from "@/components/ui/TextInputField";
 import type { ThemePalette } from "@/constants/colors";
 import { SIZES } from "@/constants";
 import { useThemePalette } from "@/hooks/useThemePalette";
+import { useThemeStore } from "@/context/themeStore";
 import { useAuthStore } from "@/context/authStore";
 import { AuthStackParamList } from "@/navigation/types";
 import { authApi } from "@/services/auth";
@@ -138,12 +139,31 @@ function createStyles(c: ThemePalette) {
     fontSize: SIZES.fontBase,
     fontWeight: "600",
   },
+  themeToggle: {
+    position: "absolute",
+    right: SIZES.lg,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: c.inputBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
 });
 }
 
 export const LoginScreen = () => {
   const c = useThemePalette();
   const styles = useMemo(() => createStyles(c), [c]);
+  const { isDarkMode, toggleMode } = useThemeStore();
 
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -320,6 +340,18 @@ export const LoginScreen = () => {
         },
       ]}
     >
+      <TouchableOpacity
+        style={[styles.themeToggle, { top: insets.top > 0 ? insets.top + SIZES.sm : SIZES.md }]}
+        onPress={toggleMode}
+        activeOpacity={0.8}
+      >
+        <Ionicons
+          name={isDarkMode ? "sunny-outline" : "moon-outline"}
+          size={SIZES.iconMd}
+          color={c.text}
+        />
+      </TouchableOpacity>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}

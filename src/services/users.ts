@@ -1,7 +1,4 @@
-import {
-  RoleResponse,
-  UtilisateurResponse,
-} from "@/types/api";
+import { RoleResponse, UtilisateurResponse } from "@/types/api";
 import { apiClient, handleApiError } from "./api";
 
 type UtilisateurApiResponse = {
@@ -23,9 +20,11 @@ function normalizeUser(item: UtilisateurApiResponse): UtilisateurResponse {
     email: item.email,
     nom: item.nom,
     telephone: item.telephone ?? undefined,
-    is_active: typeof item.is_active === "boolean" ? item.is_active : !!item.actif,
+    is_active:
+      typeof item.is_active === "boolean" ? item.is_active : !!item.actif,
     role: item.role,
-    created_at: item.created_at ?? item.dateCreation ?? new Date().toISOString(),
+    created_at:
+      item.created_at ?? item.dateCreation ?? new Date().toISOString(),
   };
 }
 
@@ -41,7 +40,8 @@ export const usersService = {
 
   async getPending(): Promise<UtilisateurResponse[]> {
     try {
-      const res = await apiClient.get<UtilisateurApiResponse[]>("/users/pending");
+      const res =
+        await apiClient.get<UtilisateurApiResponse[]>("/users/pending");
       return res.data.map(normalizeUser);
     } catch (e) {
       handleApiError(e);
@@ -86,12 +86,13 @@ export const usersService = {
 
   async updateProfile(data: {
     nom?: string;
+    email?: string;
     telephone?: string;
   }): Promise<UtilisateurResponse> {
     try {
       const res = await apiClient.patch<UtilisateurApiResponse>(
         "/users/me/profile",
-        data
+        data,
       );
       return normalizeUser(res.data);
     } catch (e) {

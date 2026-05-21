@@ -1,12 +1,13 @@
-import React from "react";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { QATabParamList } from "./types";
-import { InstagramTabBar } from "./InstagramTabBar";
+import AnomaliesScreen from "@/screens/AnomaliesScreen";
+import ProfileScreen from "@/screens/ProfileScreen";
 import QATesterDashboard from "@/screens/QATesterDashboard";
-import TestsScreen from "@/screens/TestsScreen";
 import ReportsScreen from "@/screens/ReportsScreen";
 import SprintsScreen from "@/screens/SprintsScreen";
-import ProfileScreen from "@/screens/ProfileScreen";
+import TestsScreen from "@/screens/TestsScreen";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import React from "react";
+import { InstagramTabBar } from "./InstagramTabBar";
+import { QATabParamList } from "./types";
 
 const Tab = createBottomTabNavigator<QATabParamList>();
 
@@ -17,9 +18,10 @@ export const QATabs: React.FC = () => {
       screenOptions={{ headerShown: false }}
     >
       <Tab.Screen name="Home" component={QATesterDashboard} />
-      <Tab.Screen name="Tests" component={TestsScreen} />
-      <Tab.Screen name="Reports" component={ReportsScreen} />
       <Tab.Screen name="Sprints" component={SprintsScreen} />
+      <Tab.Screen name="Tests" component={TestsScreen} />
+      <Tab.Screen name="Anomalies" component={AnomaliesScreen} />
+      <Tab.Screen name="Reports" component={ReportsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );

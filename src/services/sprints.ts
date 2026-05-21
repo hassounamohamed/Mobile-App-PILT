@@ -37,8 +37,9 @@ function normalizeSprintStatus(status?: string | null): SprintResponse["statut"]
 
 function normalizeStoryStatus(status?: string | null): UserStoryResponse["statut"] {
   const value = (status ?? "").toLowerCase();
-  if (value === "in_progress") return "EN_COURS";
-  if (value === "done") return "TERMINE";
+  if (value === "in_progress" || value === "en_cours") return "EN_COURS";
+  if (value === "done" || value === "termine") return "TERMINE";
+  if (value === "ready_for_test" || value === "a_tester") return "A_TESTER";
   return "A_FAIRE";
 }
 
@@ -51,7 +52,7 @@ function normalizeStoryPriority(priority?: string | null): UserStoryResponse["pr
 }
 
 function normalizeSprintStory(
-  story: SprintApiResponse["userstories"][number],
+  story: NonNullable<SprintApiResponse["userstories"]>[number],
 ): UserStoryResponse {
   const assigneeId = story.assigneeId ?? story.developerId ?? story.assignee?.id ?? undefined;
   return {

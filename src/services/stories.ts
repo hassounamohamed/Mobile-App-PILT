@@ -17,14 +17,16 @@ type UserStoryApiResponse = {
 
 function normalizeStoryStatus(status?: string | null): UserStoryResponse["statut"] {
   const value = (status ?? "").toLowerCase();
-  if (value === "in_progress") return "EN_COURS";
-  if (value === "done") return "TERMINE";
+  if (value === "in_progress" || value === "en_cours") return "EN_COURS";
+  if (value === "done" || value === "termine") return "TERMINE";
+  if (value === "ready_for_test" || value === "a_tester") return "A_TESTER";
   return "A_FAIRE";
 }
 
 function denormalizeStoryStatus(status: UserStoryResponse["statut"]): string {
   if (status === "EN_COURS") return "in_progress";
   if (status === "TERMINE") return "done";
+  if (status === "A_TESTER") return "ready_for_test";
   return "to_do";
 }
 

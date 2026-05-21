@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import React, { useMemo, useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -8,20 +8,21 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import type { ThemePalette } from "@/constants/colors";
 import { SIZES } from "@/constants";
+import type { ThemePalette } from "@/constants/colors";
 import { useThemePalette } from "@/hooks/useThemePalette";
 import { projectsService } from "@/services/projects";
 import { cahierTestsService } from "@/services/tests";
 import {
   CahierTestResponse,
-  CasTestResponse,
   CasTestHistoryEntry,
+  CasTestResponse,
   ProjetResponse,
 } from "@/types/api";
 
@@ -63,228 +64,266 @@ function formatDateTime(value?: string | null) {
 
 function createStyles(c: ThemePalette) {
   return StyleSheet.create({
-  root: { flex: 1, backgroundColor: c.background },
-  pageTitle: {
-    color: c.text,
-    fontSize: SIZES.font2xl,
-    fontWeight: "800",
-    marginBottom: 2,
-  },
-  pageSubtitle: {
-    color: c.textSecondary,
-    fontSize: SIZES.fontSm,
-    marginBottom: SIZES.lg,
-  },
-  projectPicker: { marginBottom: SIZES.md },
-  projectChip: {
-    paddingHorizontal: SIZES.md,
-    paddingVertical: SIZES.sm,
-    borderRadius: SIZES.radiusSm,
-    borderWidth: 1,
-    borderColor: c.inputBorder,
-    backgroundColor: c.backgroundSecondary,
-    marginRight: SIZES.sm,
-  },
-  projectChipActive: {
-    backgroundColor: c.primary,
-    borderColor: c.primary,
-  },
-  projectChipText: {
-    color: c.textSecondary,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-  },
-  projectChipTextActive: { color: c.white },
-  emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
-  emptyText: { color: c.textSecondary, fontSize: SIZES.fontBase },
-  cahierSummary: {
-    backgroundColor: c.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: c.inputBorder,
-    padding: SIZES.lg,
-    marginBottom: SIZES.md,
-  },
-  cahierHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: SIZES.md,
-  },
-  cahierTitle: {
-    color: c.text,
-    fontSize: SIZES.fontBase,
-    fontWeight: "700",
-    flex: 1,
-    marginRight: SIZES.sm,
-  },
-  pill: {
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 2,
-    borderRadius: SIZES.radiusSm,
-  },
-  pillText: { fontSize: SIZES.fontXs, fontWeight: "700" },
-  progressRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: SIZES.sm,
-  },
-  progressLabel: {
-    color: c.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-  },
-  progressStats: { color: c.textSecondary, fontSize: SIZES.fontXs },
-  progressBarBg: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: c.inputBorder,
-  },
-  progressBarFill: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: c.primary,
-  },
-  casCard: {
-    backgroundColor: c.backgroundSecondary,
-    borderRadius: SIZES.radiusLg,
-    borderWidth: 1,
-    borderColor: c.inputBorder,
-    padding: SIZES.md,
-    marginBottom: SIZES.sm,
-  },
-  casHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: SIZES.sm,
-    marginBottom: SIZES.sm,
-  },
-  casTitle: {
-    color: c.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "600",
-    flex: 1,
-  },
-  casDesc: {
-    color: c.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginBottom: SIZES.sm,
-  },
-  casHint: {
-    color: c.textSecondary,
-    fontSize: SIZES.fontXs,
-  },
-  statusPill: {
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 2,
-    borderRadius: SIZES.radiusSm,
-  },
-  statusPillText: {
-    fontSize: SIZES.fontXs,
-    fontWeight: "700",
-  },
-  casActions: { flexDirection: "row", gap: SIZES.sm, flexWrap: "wrap" },
-  casBtn: {
-    paddingHorizontal: SIZES.sm,
-    paddingVertical: 4,
-    borderRadius: SIZES.radiusSm,
-    borderWidth: 1,
-    borderColor: c.inputBorder,
-  },
-  casBtnText: { fontSize: SIZES.fontXs, fontWeight: "600" },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "flex-end",
-  },
-  modalCard: {
-    backgroundColor: c.backgroundSecondary,
-    borderTopLeftRadius: SIZES.radiusXl,
-    borderTopRightRadius: SIZES.radiusXl,
-    padding: SIZES.xl,
-    paddingBottom: SIZES.xxl,
-  },
-  modalHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: SIZES.lg,
-  },
-  modalTitle: { color: c.text, fontSize: SIZES.fontLg, fontWeight: "700" },
-  modalSubtitle: {
-    color: c.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginTop: 2,
-  },
-  caseDetailBox: {
-    backgroundColor: c.background,
-    borderWidth: 1,
-    borderColor: c.inputBorder,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    gap: 4,
-    marginBottom: SIZES.md,
-  },
-  caseMetaGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: SIZES.sm,
-    marginBottom: SIZES.sm,
-  },
-  caseMetaCard: {
-    width: "48%",
-    backgroundColor: c.backgroundSecondary,
-    borderWidth: 1,
-    borderColor: c.inputBorder,
-    borderRadius: SIZES.radiusSm,
-    padding: SIZES.sm,
-  },
-  caseMetaLabel: {
-    color: c.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginBottom: 2,
-  },
-  caseMetaValue: {
-    color: c.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "700",
-  },
-  caseDetailText: { color: c.textSecondary, fontSize: SIZES.fontSm },
-  historyBox: {
-    backgroundColor: c.background,
-    borderRadius: SIZES.radiusMd,
-    padding: SIZES.md,
-    marginBottom: SIZES.md,
-  },
-  historyTitle: {
-    color: c.text,
-    fontSize: SIZES.fontBase,
-    fontWeight: "700",
-    marginBottom: SIZES.sm,
-  },
-  historyScroll: { maxHeight: 220 },
-  historyEmpty: { color: c.textSecondary, fontSize: SIZES.fontSm },
-  historyRow: {
-    paddingVertical: SIZES.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: c.inputBorder,
-  },
-  historyEntryTitle: {
-    color: c.text,
-    fontSize: SIZES.fontSm,
-    fontWeight: "700",
-  },
-  historyEntryDetail: {
-    color: c.textSecondary,
-    fontSize: SIZES.fontXs,
-    marginTop: 2,
-  },
-  historyEntryComment: {
-    color: c.text,
-    fontSize: SIZES.fontXs,
-    marginTop: 4,
-  },
-});
+    root: { flex: 1, backgroundColor: c.background },
+    pageTitle: {
+      color: c.text,
+      fontSize: SIZES.font2xl,
+      fontWeight: "800",
+      marginBottom: 2,
+    },
+    pageSubtitle: {
+      color: c.textSecondary,
+      fontSize: SIZES.fontSm,
+      marginBottom: SIZES.lg,
+    },
+    projectPicker: { marginBottom: SIZES.md },
+    projectChip: {
+      paddingHorizontal: SIZES.md,
+      paddingVertical: SIZES.sm,
+      borderRadius: SIZES.radiusSm,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+      backgroundColor: c.backgroundSecondary,
+      marginRight: SIZES.sm,
+    },
+    projectChipActive: {
+      backgroundColor: c.primary,
+      borderColor: c.primary,
+    },
+    projectChipText: {
+      color: c.textSecondary,
+      fontSize: SIZES.fontSm,
+      fontWeight: "600",
+    },
+    projectChipTextActive: { color: c.white },
+    emptyWrap: { alignItems: "center", paddingTop: SIZES.xxl, gap: SIZES.md },
+    emptyText: { color: c.textSecondary, fontSize: SIZES.fontBase },
+    cahierSummary: {
+      backgroundColor: c.backgroundSecondary,
+      borderRadius: SIZES.radiusLg,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+      padding: SIZES.lg,
+      marginBottom: SIZES.md,
+    },
+    cahierHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: SIZES.md,
+    },
+    cahierTitle: {
+      color: c.text,
+      fontSize: SIZES.fontBase,
+      fontWeight: "700",
+      flex: 1,
+      marginRight: SIZES.sm,
+    },
+    pill: {
+      paddingHorizontal: SIZES.sm,
+      paddingVertical: 2,
+      borderRadius: SIZES.radiusSm,
+    },
+    pillText: { fontSize: SIZES.fontXs, fontWeight: "700" },
+    progressRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: SIZES.sm,
+    },
+    progressLabel: {
+      color: c.text,
+      fontSize: SIZES.fontSm,
+      fontWeight: "600",
+    },
+    progressStats: { color: c.textSecondary, fontSize: SIZES.fontXs },
+    progressBarBg: {
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: c.inputBorder,
+    },
+    progressBarFill: {
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: c.primary,
+    },
+    casCard: {
+      backgroundColor: c.backgroundSecondary,
+      borderRadius: SIZES.radiusLg,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+      padding: SIZES.md,
+      marginBottom: SIZES.sm,
+    },
+    casHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: SIZES.sm,
+      marginBottom: SIZES.sm,
+    },
+    casTitle: {
+      color: c.text,
+      fontSize: SIZES.fontSm,
+      fontWeight: "600",
+      flex: 1,
+    },
+    casDesc: {
+      color: c.textSecondary,
+      fontSize: SIZES.fontXs,
+      marginBottom: SIZES.sm,
+    },
+    casHint: {
+      color: c.textSecondary,
+      fontSize: SIZES.fontXs,
+    },
+    statusPill: {
+      paddingHorizontal: SIZES.sm,
+      paddingVertical: 2,
+      borderRadius: SIZES.radiusSm,
+    },
+    statusPillText: {
+      fontSize: SIZES.fontXs,
+      fontWeight: "700",
+    },
+    casActions: { flexDirection: "row", gap: SIZES.sm, flexWrap: "wrap" },
+    casBtn: {
+      paddingHorizontal: SIZES.sm,
+      paddingVertical: 4,
+      borderRadius: SIZES.radiusSm,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+    },
+    casBtnText: { fontSize: SIZES.fontXs, fontWeight: "600" },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0,0,0,0.7)",
+      justifyContent: "flex-end",
+    },
+    modalCard: {
+      backgroundColor: c.backgroundSecondary,
+      borderTopLeftRadius: SIZES.radiusXl,
+      borderTopRightRadius: SIZES.radiusXl,
+      padding: SIZES.xl,
+      paddingBottom: SIZES.xxl,
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: SIZES.lg,
+    },
+    modalTitle: { color: c.text, fontSize: SIZES.fontLg, fontWeight: "700" },
+    modalSubtitle: {
+      color: c.textSecondary,
+      fontSize: SIZES.fontXs,
+      marginTop: 2,
+    },
+    caseDetailBox: {
+      backgroundColor: c.background,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+      borderRadius: SIZES.radiusMd,
+      padding: SIZES.md,
+      gap: 4,
+      marginBottom: SIZES.md,
+    },
+    caseMetaGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: SIZES.sm,
+      marginBottom: SIZES.sm,
+    },
+    caseMetaCard: {
+      width: "48%",
+      backgroundColor: c.backgroundSecondary,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+      borderRadius: SIZES.radiusSm,
+      padding: SIZES.sm,
+    },
+    caseMetaLabel: {
+      color: c.textSecondary,
+      fontSize: SIZES.fontXs,
+      marginBottom: 2,
+    },
+    caseMetaValue: {
+      color: c.text,
+      fontSize: SIZES.fontSm,
+      fontWeight: "700",
+    },
+    caseDetailText: { color: c.textSecondary, fontSize: SIZES.fontSm },
+    observationBox: {
+      marginTop: SIZES.md,
+      backgroundColor: c.backgroundSecondary,
+      borderRadius: SIZES.radiusMd,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+      padding: SIZES.md,
+      gap: SIZES.sm,
+    },
+    observationLabel: {
+      color: c.text,
+      fontSize: SIZES.fontSm,
+      fontWeight: "700",
+    },
+    observationInput: {
+      minHeight: 96,
+      borderRadius: SIZES.radiusSm,
+      borderWidth: 1,
+      borderColor: c.inputBorder,
+      backgroundColor: c.background,
+      color: c.text,
+      paddingHorizontal: SIZES.md,
+      paddingVertical: SIZES.sm,
+      textAlignVertical: "top",
+      fontSize: SIZES.fontSm,
+    },
+    observationBtn: {
+      alignSelf: "flex-start",
+      backgroundColor: c.primary,
+      paddingHorizontal: SIZES.md,
+      paddingVertical: SIZES.sm,
+      borderRadius: SIZES.radiusSm,
+    },
+    observationBtnText: {
+      color: c.white,
+      fontSize: SIZES.fontSm,
+      fontWeight: "700",
+    },
+    historyBox: {
+      backgroundColor: c.background,
+      borderRadius: SIZES.radiusMd,
+      padding: SIZES.md,
+      marginBottom: SIZES.md,
+    },
+    historyTitle: {
+      color: c.text,
+      fontSize: SIZES.fontBase,
+      fontWeight: "700",
+      marginBottom: SIZES.sm,
+    },
+    historyScroll: { maxHeight: 220 },
+    historyEmpty: { color: c.textSecondary, fontSize: SIZES.fontSm },
+    historyRow: {
+      paddingVertical: SIZES.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: c.inputBorder,
+    },
+    historyEntryTitle: {
+      color: c.text,
+      fontSize: SIZES.fontSm,
+      fontWeight: "700",
+    },
+    historyEntryDetail: {
+      color: c.textSecondary,
+      fontSize: SIZES.fontXs,
+      marginTop: 2,
+    },
+    historyEntryComment: {
+      color: c.text,
+      fontSize: SIZES.fontXs,
+      marginTop: 4,
+    },
+  });
 }
 
 export default function TestsScreen() {
@@ -302,25 +341,59 @@ export default function TestsScreen() {
   const [showCasDetail, setShowCasDetail] = useState(false);
   const [casHistory, setCasHistory] = useState<CasTestHistoryEntry[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [savingObservation, setSavingObservation] = useState(false);
+  const [observationDraft, setObservationDraft] = useState("");
   const [loadingProjects, setLoadingProjects] = useState(true);
   const [loadingTests, setLoadingTests] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const testsCache = useRef<
+    Record<
+      number,
+      {
+        cahier: CahierTestResponse | null;
+        casTests: CasTestResponse[];
+      }
+    >
+  >({});
 
   async function loadTestsFor(projectId: number) {
+    const cached = testsCache.current[projectId];
+    if (cached) {
+      setCahier(cached.cahier);
+      setCasTests(cached.casTests);
+      setSelectedCas(null);
+      setShowCasDetail(false);
+      setCasHistory([]);
+      setObservationDraft("");
+      return;
+    }
+
     setLoadingTests(true);
     try {
       const detail = await cahierTestsService.getCahierDetail(projectId);
       setCahier(detail);
       if (detail) {
-        setCasTests(
-          await cahierTestsService.listCasTests(projectId, detail.id),
-        );
+        const detailCasTests = detail.cas_tests ?? [];
+        const casTests =
+          detailCasTests.length > 0
+            ? detailCasTests
+            : await cahierTestsService.listCasTests(projectId, detail.id);
+        setCasTests(casTests);
+        testsCache.current[projectId] = {
+          cahier: detail,
+          casTests,
+        };
       } else {
         setCasTests([]);
+        testsCache.current[projectId] = {
+          cahier: null,
+          casTests: [],
+        };
       }
       setSelectedCas(null);
       setShowCasDetail(false);
       setCasHistory([]);
+      setObservationDraft("");
     } catch (e: any) {
       Alert.alert("Erreur", e.message);
       setCahier(null);
@@ -336,7 +409,7 @@ export default function TestsScreen() {
       setProjects(data);
       if (data.length > 0) {
         setSelectedProject(data[0]);
-        await loadTestsFor(data[0].id);
+        void loadTestsFor(data[0].id);
       } else {
         setSelectedProject(null);
         setCahier(null);
@@ -355,14 +428,16 @@ export default function TestsScreen() {
   }, []);
 
   async function selectProject(proj: ProjetResponse) {
+    if (selectedProject?.id === proj.id) return;
     setSelectedProject(proj);
-    await loadTestsFor(proj.id);
+    void loadTestsFor(proj.id);
   }
 
   async function openCasDetail(cas: CasTestResponse) {
     setSelectedCas(cas);
     setShowCasDetail(true);
     setCasHistory([]);
+    setObservationDraft("");
 
     if (!cahier || !selectedProject) return;
 
@@ -374,6 +449,12 @@ export default function TestsScreen() {
         cas.id,
       );
       setCasHistory(history);
+      const latestObservation = [...history]
+        .reverse()
+        .find((entry) => entry.commentaire)?.commentaire;
+      if (latestObservation) {
+        setObservationDraft(latestObservation);
+      }
     } catch (e: any) {
       Alert.alert("Erreur", e.message);
       setCasHistory([]);
@@ -398,8 +479,65 @@ export default function TestsScreen() {
         prev.map((item) => (item.id === cas.id ? updated : item)),
       );
       setSelectedCas((prev) => (prev?.id === cas.id ? updated : prev));
+      const cacheEntry = testsCache.current[selectedProject.id];
+      if (cacheEntry) {
+        testsCache.current[selectedProject.id] = {
+          ...cacheEntry,
+          casTests: cacheEntry.casTests.map((item) =>
+            item.id === cas.id ? updated : item,
+          ),
+        };
+      }
     } catch (e: any) {
       Alert.alert("Erreur", e.message);
+    }
+  }
+
+  async function saveObservation() {
+    if (!cahier || !selectedProject || !selectedCas) return;
+
+    const trimmed = observationDraft.trim();
+    if (!trimmed) {
+      Alert.alert(
+        "Observation",
+        "Ajoute une observation avant de sauvegarder.",
+      );
+      return;
+    }
+
+    setSavingObservation(true);
+    try {
+      const updated = await cahierTestsService.updateCasTest(
+        selectedProject.id,
+        cahier.id,
+        selectedCas.id,
+        { commentaire: trimmed },
+      );
+      setCasTests((prev) =>
+        prev.map((item) => (item.id === selectedCas.id ? updated : item)),
+      );
+      setSelectedCas(updated);
+      const cacheEntry = testsCache.current[selectedProject.id];
+      if (cacheEntry) {
+        testsCache.current[selectedProject.id] = {
+          ...cacheEntry,
+          casTests: cacheEntry.casTests.map((item) =>
+            item.id === selectedCas.id ? updated : item,
+          ),
+        };
+      }
+
+      const history = await cahierTestsService.getCasTestHistory(
+        selectedProject.id,
+        cahier.id,
+        selectedCas.id,
+      );
+      setCasHistory(history);
+      Alert.alert("Observation", "Observation enregistrée.");
+    } catch (e: any) {
+      Alert.alert("Erreur", e.message);
+    } finally {
+      setSavingObservation(false);
     }
   }
 
@@ -543,7 +681,12 @@ export default function TestsScreen() {
                               { backgroundColor: `${meta.color}22` },
                             ]}
                           >
-                            <Text style={[styles.statusPillText, { color: meta.color }]}>
+                            <Text
+                              style={[
+                                styles.statusPillText,
+                                { color: meta.color },
+                              ]}
+                            >
                               {meta.label}
                             </Text>
                           </View>
@@ -585,7 +728,9 @@ export default function TestsScreen() {
                   <View style={styles.caseMetaGrid}>
                     <View style={styles.caseMetaCard}>
                       <Text style={styles.caseMetaLabel}>ID</Text>
-                      <Text style={styles.caseMetaValue}>#{selectedCas.id}</Text>
+                      <Text style={styles.caseMetaValue}>
+                        #{selectedCas.id}
+                      </Text>
                     </View>
                     <View style={styles.caseMetaCard}>
                       <Text style={styles.caseMetaLabel}>Statut</Text>
@@ -596,7 +741,9 @@ export default function TestsScreen() {
                     </View>
                     <View style={styles.caseMetaCard}>
                       <Text style={styles.caseMetaLabel}>Type de test</Text>
-                      <Text style={styles.caseMetaValue}>{selectedCas.type}</Text>
+                      <Text style={styles.caseMetaValue}>
+                        {selectedCas.type}
+                      </Text>
                     </View>
                     <View style={styles.caseMetaCard}>
                       <Text style={styles.caseMetaLabel}>User story</Text>
@@ -617,6 +764,31 @@ export default function TestsScreen() {
                       {selectedCas.description}
                     </Text>
                   ) : null}
+                  <View style={styles.observationBox}>
+                    <Text style={styles.observationLabel}>
+                      Observation / anomalie
+                    </Text>
+                    <TextInput
+                      value={observationDraft}
+                      onChangeText={setObservationDraft}
+                      placeholder="Décris l'anomalie ou ajoute ton observation ici"
+                      placeholderTextColor={c.textSecondary}
+                      multiline
+                      numberOfLines={4}
+                      style={styles.observationInput}
+                    />
+                    <TouchableOpacity
+                      style={styles.observationBtn}
+                      onPress={saveObservation}
+                      disabled={savingObservation}
+                    >
+                      <Text style={styles.observationBtnText}>
+                        {savingObservation
+                          ? "Sauvegarde..."
+                          : "Enregistrer l'observation"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
 
                 <View style={styles.historyBox}>
@@ -636,22 +808,24 @@ export default function TestsScreen() {
                       showsVerticalScrollIndicator={false}
                     >
                       {casHistory.map((entry) => (
-                      <View key={entry.id} style={styles.historyRow}>
-                        <Text style={styles.historyEntryTitle}>
-                          {entry.statut ?? "Mise à jour"}
-                        </Text>
-                        <Text style={styles.historyEntryDetail}>
-                          {entry.user_nom ?? entry.user_email ?? "Utilisateur"}
-                          {entry.created_at
-                            ? ` · ${formatDateTime(entry.created_at)}`
-                            : ""}
-                        </Text>
-                        {entry.commentaire ? (
-                          <Text style={styles.historyEntryComment}>
-                            {entry.commentaire}
+                        <View key={entry.id} style={styles.historyRow}>
+                          <Text style={styles.historyEntryTitle}>
+                            {entry.statut ?? "Mise à jour"}
                           </Text>
-                        ) : null}
-                      </View>
+                          <Text style={styles.historyEntryDetail}>
+                            {entry.user_nom ??
+                              entry.user_email ??
+                              "Utilisateur"}
+                            {entry.created_at
+                              ? ` · ${formatDateTime(entry.created_at)}`
+                              : ""}
+                          </Text>
+                          {entry.commentaire ? (
+                            <Text style={styles.historyEntryComment}>
+                              {entry.commentaire}
+                            </Text>
+                          ) : null}
+                        </View>
                       ))}
                     </ScrollView>
                   )}
@@ -690,5 +864,3 @@ export default function TestsScreen() {
     </View>
   );
 }
-
-

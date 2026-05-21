@@ -1,8 +1,8 @@
 import {
-    CahierTestResponse,
-    CasTestHistoryEntry,
-    CasTestResponse,
-    UnitTestResponse,
+  CahierTestResponse,
+  CasTestHistoryEntry,
+  CasTestResponse,
+  UnitTestResponse,
 } from "@/types/api";
 import { apiClient, handleApiError } from "./api";
 
@@ -48,6 +48,7 @@ type UnitTestSummaryApi = {
   nom?: string | null;
   description?: string | null;
   userStoryId?: number | null;
+  statut?: string | null;
 };
 
 type UnitTestsCahierApi = {
@@ -59,6 +60,7 @@ type UnitTestDetailApi = {
   nom?: string | null;
   description?: string | null;
   userStoryId?: number | null;
+  statut?: string | null;
 };
 
 const unitTestUserStoryCache = new Map<number, number>();
@@ -72,12 +74,24 @@ function normalizeCahierStatus(
   return "BROUILLON";
 }
 
+function stripAccents(str: string): string {
+  return str.normalize("NFD").replace(/[̀-ͯ]/g, "");
+}
+
 function normalizeCasStatus(status?: string | null): CasTestResponse["statut"] {
-  const value = (status ?? "").toLowerCase();
-  if (value.includes("reussi") || value.includes("pass")) return "PASSE";
-  if (value.includes("echou")) return "ECHEC";
-  if (value.includes("bloqu")) return "BLOQUE";
+  const value = stripAccents((status ?? "").toLowerCase());
+  if (value === "passe" || value.includes("reussi") || value.includes("pass")) return "PASSE";
+  if (value === "echec" || value.includes("echec") || value.includes("echoue") || value.includes("fail")) return "ECHEC";
+  if (value === "bloque" || value.includes("bloqu")) return "BLOQUE";
   return "NON_EXECUTE";
+}
+
+function normalizeUnitTestStatus(status?: string | null): UnitTestResponse["statut"] {
+  const value = stripAccents((status ?? "").toLowerCase());
+  if (value === "passe" || value.includes("reussi") || value.includes("pass")) return "PASSE";
+  if (value === "echec" || value.includes("echec") || value.includes("echoue") || value.includes("fail")) return "ECHEC";
+  if (value === "ignore" || value.includes("ignor")) return "IGNORE";
+  return "EN_ATTENTE";
 }
 
 function denormalizeCasStatus(status: CasTestResponse["statut"]): string {
@@ -104,9 +118,7 @@ function normalizeCas(item: CasApiResponse): CasTestResponse {
   };
 }
 
-function normalizeCasHistory(
-  item: CasHistoryApiResponse,
-): CasTestHistoryEntry {
+function normalizeCasHistory(item: CasHistoryApiResponse): CasTestHistoryEntry {
   const statut = item.new_statut_test ?? item.old_statut_test ?? undefined;
   const commentaire = item.new_commentaire ?? item.old_commentaire ?? undefined;
   const created_at = item.changed_at ?? undefined;
@@ -153,13 +165,47 @@ function normalizeUnitTest(
     id: item.id,
     nom: item.nom ?? `Test #${item.id}`,
     description: item.description ?? undefined,
-    statut: "EN_ATTENTE",
+    statut: normalizeUnitTestStatus(item.statut),
     user_story_id: userStoryId,
     projet_id: projetId,
   };
 }
 
+type CahierStatsApi = {
+  nombre_total: number;
+  nombre_reussi: number;
+  nombre_echoue: number;
+  nombre_bloque: number;
+  nombre_non_execute: number;
+};
+
+export type CahierStats = {
+  total: number;
+  reussi: number;
+  echoue: number;
+  bloque: number;
+  nonExecute: number;
+};
+
 export const cahierTestsService = {
+  async getStats(projetId: number): Promise<CahierStats | null> {
+    try {
+      const res = await apiClient.get<CahierStatsApi>(
+        `/projets/${projetId}/cahier-tests/stats`,
+      );
+      return {
+        total: res.data.nombre_total,
+        reussi: res.data.nombre_reussi,
+        echoue: res.data.nombre_echoue,
+        bloque: res.data.nombre_bloque,
+        nonExecute: res.data.nombre_non_execute,
+      };
+    } catch (e: any) {
+      if (e?.response?.status === 404) return null;
+      handleApiError(e);
+    }
+  },
+
   async get(projetId: number): Promise<CahierTestResponse | null> {
     try {
       const res = await apiClient.get<CahierApiResponse>(
@@ -228,12 +274,21 @@ export const cahierTestsService = {
     projetId: number,
     cahierId: number,
     casId: number,
-    data: Partial<{ statut: CasTestResponse["statut"]; resultat: string }>,
+    data: Partial<{
+      statut: CasTestResponse["statut"];
+      resultat: string;
+      commentaire: string;
+    }>,
   ): Promise<CasTestResponse> {
     try {
-      const payload: { statut_test?: string; resultat_obtenu?: string } = {};
+      const payload: {
+        statut_test?: string;
+        resultat_obtenu?: string;
+        commentaire?: string;
+      } = {};
       if (data.statut) payload.statut_test = denormalizeCasStatus(data.statut);
       if (data.resultat) payload.resultat_obtenu = data.resultat;
+      if (data.commentaire) payload.commentaire = data.commentaire;
 
       const res = await apiClient.patch<CasApiResponse>(
         `/projets/${projetId}/cahier-tests/${cahierId}/cas-tests/${casId}`,

@@ -121,12 +121,26 @@ export interface SprintVelocite {
 
 // ===== Backlog =====
 
+export interface BacklogStatutDetail {
+  nb: number;
+  points: number;
+}
+
+export interface BacklogEpicDetail {
+  epic_id: number;
+  titre: string;
+  nb: number;
+  points: number;
+  points_done: number;
+}
+
 export interface BacklogIndicateurs {
-  total: number;
-  a_faire: number;
-  en_cours: number;
-  termine: number;
-  sans_sprint: number;
+  projet_id: number;
+  total_stories: number;
+  total_points: number;
+  points_done: number;
+  par_statut: Record<string, BacklogStatutDetail>;
+  par_epic: BacklogEpicDetail[];
 }
 
 // ===== Tests =====

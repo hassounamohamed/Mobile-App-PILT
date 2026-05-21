@@ -1,23 +1,35 @@
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+    EmptyState,
+    HeroCard,
+    NotificationBell,
+    SectionCard,
+    StatCard,
+    StatusBadge,
+} from "@/components/DashboardSharedComponents";
+import { useDashboardStyles } from "@/components/dashboardStyles";
+import { NotificationsModal } from "@/components/NotificationsModal";
 import { SIZES } from "@/constants";
+import { useNotificationRealtime } from "@/hooks/use-notification-realtime";
 import { useThemePalette } from "@/hooks/useThemePalette";
 import { projectsService } from "@/services/projects";
 import { sprintsService } from "@/services/sprints";
-import type { ProjetResponse, SprintResponse } from "@/types/api";
-import { useDashboardStyles } from "@/components/dashboardStyles";
+import { storiesService } from "@/services/stories";
+import type {
+    BacklogIndicateurs,
+    ProjetResponse,
+    SprintResponse,
+} from "@/types/api";
 import { StatItem } from "@/utils/DashboardUtils";
+import React, { useEffect, useState } from "react";
 import {
-  HeroCard,
-  SectionCard,
-  StatCard,
-  StatusBadge,
-  EmptyState,
-  NotificationBell,
-} from "@/components/DashboardSharedComponents";
-import { useNotificationRealtime } from "@/hooks/use-notification-realtime";
-import { NotificationsModal } from "@/components/NotificationsModal";
+    ActivityIndicator,
+    Alert,
+    RefreshControl,
+    ScrollView,
+    Text,
+    View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function ScrumMasterDashboard() {
   const styles = useDashboardStyles();
@@ -25,10 +37,43 @@ export default function ScrumMasterDashboard() {
   const insets = useSafeAreaInsets();
   const [projects, setProjects] = useState<ProjetResponse[]>([]);
   const [activeSprint, setActiveSprint] = useState<SprintResponse | null>(null);
+  const [backlogIndicators, setBacklogIndicators] =
+    useState<BacklogIndicateurs | null>(null);
   const { enabled, unreadCount } = useNotificationRealtime();
   const [showNotifications, setShowNotifications] = useState(false);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  function aggregateBacklogIndicators(indicators: BacklogIndicateurs[]) {
+    return indicators.reduce<BacklogIndicateurs>(
+      (accumulator, current) => ({
+        projet_id: 0,
+        total_stories: accumulator.total_stories + (current.total_stories ?? 0),
+        total_points: accumulator.total_points + (current.total_points ?? 0),
+        points_done: accumulator.points_done + (current.points_done ?? 0),
+        par_statut: Object.entries(current.par_statut ?? {}).reduce(
+          (statusAccumulator, [status, detail]) => ({
+            ...statusAccumulator,
+            [status]: {
+              nb: (statusAccumulator[status]?.nb ?? 0) + (detail.nb ?? 0),
+              points:
+                (statusAccumulator[status]?.points ?? 0) + (detail.points ?? 0),
+            },
+          }),
+          { ...accumulator.par_statut },
+        ),
+        par_epic: [...accumulator.par_epic, ...(current.par_epic ?? [])],
+      }),
+      {
+        projet_id: 0,
+        total_stories: 0,
+        total_points: 0,
+        points_done: 0,
+        par_statut: {},
+        par_epic: [],
+      },
+    );
+  }
 
   async function load() {
     try {
@@ -38,17 +83,37 @@ export default function ScrumMasterDashboard() {
 
       if (safeProjects.length === 0) {
         setActiveSprint(null);
+        setBacklogIndicators(null);
         return;
       }
 
-      const activeSprints = await Promise.allSettled(
-        safeProjects.map((project) => sprintsService.getActive(project.id)),
-      );
+      const [activeSprints, backlogResults] = await Promise.all([
+        Promise.allSettled(
+          safeProjects.map((project) => sprintsService.getActive(project.id)),
+        ),
+        Promise.allSettled(
+          safeProjects.map((project) =>
+            storiesService.getBacklogIndicateurs(project.id),
+          ),
+        ),
+      ]);
       const firstActive = activeSprints.find(
         (result): result is PromiseFulfilledResult<SprintResponse | null> =>
           result.status === "fulfilled" && !!result.value,
       );
       setActiveSprint(firstActive?.value ?? null);
+
+      const fulfilledIndicators = backlogResults
+        .filter(
+          (result): result is PromiseFulfilledResult<BacklogIndicateurs> =>
+            result.status === "fulfilled",
+        )
+        .map((result) => result.value);
+      setBacklogIndicators(
+        fulfilledIndicators.length > 0
+          ? aggregateBacklogIndicators(fulfilledIndicators)
+          : null,
+      );
     } catch (e: any) {
       Alert.alert(
         "Erreur",
@@ -56,6 +121,7 @@ export default function ScrumMasterDashboard() {
       );
       setProjects([]);
       setActiveSprint(null);
+      setBacklogIndicators(null);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -87,6 +153,45 @@ export default function ScrumMasterDashboard() {
     },
   ];
 
+  const backlogStatItems: StatItem[] = [
+    {
+      label: "Stories backlog",
+      value: String(backlogIndicators?.total_stories ?? 0),
+      icon: "layers",
+      tone: c.primary,
+    },
+    {
+      label: "Points totaux",
+      value: String(backlogIndicators?.total_points ?? 0),
+      icon: "stats-chart",
+      tone: "#06b6d4",
+    },
+    {
+      label: "Points done",
+      value: String(backlogIndicators?.points_done ?? 0),
+      icon: "checkmark-done-circle",
+      tone: "#22c55e",
+    },
+    {
+      label: "À faire",
+      value: String(backlogIndicators?.par_statut?.to_do?.nb ?? 0),
+      icon: "ellipse-outline",
+      tone: "#9ca3af",
+    },
+    {
+      label: "En cours",
+      value: String(backlogIndicators?.par_statut?.in_progress?.nb ?? 0),
+      icon: "time-outline",
+      tone: "#f59e0b",
+    },
+    {
+      label: "Done",
+      value: String(backlogIndicators?.par_statut?.done?.nb ?? 0),
+      icon: "checkmark-circle",
+      tone: "#22c55e",
+    },
+  ];
+
   return (
     <ScrollView
       contentContainerStyle={{
@@ -106,9 +211,18 @@ export default function ScrumMasterDashboard() {
         />
       }
     >
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: SIZES.lg }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: SIZES.lg,
+        }}
+      >
         <View>
-          <Text style={{ color: c.text, fontSize: SIZES.fontXl, fontWeight: "800" }}>
+          <Text
+            style={{ color: c.text, fontSize: SIZES.fontXl, fontWeight: "800" }}
+          >
             Scrum Master
           </Text>
           <Text style={{ color: c.textSecondary, fontSize: SIZES.fontSm }}>
@@ -142,22 +256,17 @@ export default function ScrumMasterDashboard() {
           ))}
         </View>
       )}
-      {activeSprint && (
-        <SectionCard title="Current Sprint">
-          <View style={styles.sprintCard}>
-            <Text style={styles.sprintName}>{activeSprint.nom}</Text>
-            {activeSprint.objectif ? (
-              <Text style={styles.sprintObjectif}>{activeSprint.objectif}</Text>
-            ) : null}
-            <View style={styles.sprintMeta}>
-              <Text style={styles.sprintDate}>
-                {activeSprint.date_debut} → {activeSprint.date_fin}
-              </Text>
-              <StatusBadge label={activeSprint.statut} color="#f59e0b" />
-            </View>
+      <SectionCard title="Indicateurs backlog">
+        {backlogIndicators ? (
+          <View style={styles.grid}>
+            {backlogStatItems.map((item) => (
+              <StatCard key={item.label} item={item} />
+            ))}
           </View>
-        </SectionCard>
-      )}
+        ) : (
+          <EmptyState message="Aucun indicateur backlog disponible" />
+        )}
+      </SectionCard>
       <SectionCard title="Projets">
         {projects.length === 0 ? (
           <EmptyState message="No assigned projects" />

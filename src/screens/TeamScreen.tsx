@@ -175,12 +175,6 @@ export default function TeamScreen() {
             <Text style={styles.pageTitle}>Équipe</Text>
             <Text style={styles.pageSubtitle}>{members.length} membre(s)</Text>
           </View>
-          {selectedProject && (
-            <TouchableOpacity style={styles.addBtn} onPress={openAddPanel}>
-              <Ionicons name="person-add-outline" size={18} color={c.white} />
-              <Text style={styles.addBtnText}>Ajouter</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         {loadingProjects ? (

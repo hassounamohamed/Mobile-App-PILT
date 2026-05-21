@@ -96,7 +96,13 @@ export const PRIORITY_ORDER: Record<string, number> = {
 
 export const toTaskStatus = (value?: string): TaskStatus => {
   const normalized = (value ?? "").toLowerCase();
-  if (normalized === "in_progress" || normalized === "en_cours") {
+  if (
+    normalized === "in_progress" ||
+    normalized === "en_cours" ||
+    normalized === "ready_for_test" ||
+    normalized === "a_tester" ||
+    normalized === "a_corriger"
+  ) {
     return "in_progress";
   }
   if (

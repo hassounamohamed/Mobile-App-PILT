@@ -228,4 +228,23 @@ export const epicsService = {
       handleApiError(e);
     }
   },
+
+  async getByProject(projetId: number): Promise<EpicResponse[]> {
+    try {
+      const res = await apiClient.get<EpicApiResponse[]>(
+        `/projets/${projetId}/epics`
+      );
+      return res.data.map((item) => ({
+        id: item.id,
+        nom: item.titre,
+        description: item.description ?? undefined,
+        priorite: normalizeEpicPriority(item.priorite),
+        statut: normalizeEpicStatus(item.statut),
+        module_id: item.module_id,
+        projet_id: projetId,
+      }));
+    } catch (e) {
+      handleApiError(e);
+    }
+  },
 };

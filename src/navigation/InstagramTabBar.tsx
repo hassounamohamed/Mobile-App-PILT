@@ -1,33 +1,35 @@
+import type { ThemePalette } from "@/constants/colors";
+import { useThemePalette } from "@/hooks/useThemePalette";
+import { Ionicons } from "@expo/vector-icons";
+import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import React, { useMemo } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
+    Platform,
+    StyleSheet,
+    TouchableOpacity,
+    View
 } from "react-native";
-import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useThemePalette } from "@/hooks/useThemePalette";
-import type { ThemePalette } from "@/constants/colors";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
-const ICON_MAP: Record<string, { filled: IoniconName; outline: IoniconName }> = {
-  Home:     { filled: "home",                outline: "home-outline" },
-  Sprints:  { filled: "flash",               outline: "flash-outline" },
-  Stories:  { filled: "list",                outline: "list-outline" },
-  Tests:    { filled: "checkmark-circle",     outline: "checkmark-circle-outline" },
-  Reports:  { filled: "bar-chart",            outline: "bar-chart-outline" },
-  Projects: { filled: "folder",              outline: "folder-outline" },
-  Backlog:  { filled: "layers",              outline: "layers-outline" },
-  Team:     { filled: "people",              outline: "people-outline" },
-  Users:    { filled: "person",              outline: "person-outline" },
-  Roles:    { filled: "shield",              outline: "shield-outline" },
-  Logs:     { filled: "document-text",       outline: "document-text-outline" },
-  Profile:  { filled: "person-circle",       outline: "person-circle-outline" },
-};
+const ICON_MAP: Record<string, { filled: IoniconName; outline: IoniconName }> =
+  {
+    Home: { filled: "home", outline: "home-outline" },
+    Sprints: { filled: "flash", outline: "flash-outline" },
+    Stories: { filled: "list", outline: "list-outline" },
+    Tests: { filled: "checkmark-circle", outline: "checkmark-circle-outline" },
+    Anomalies: { filled: "bug", outline: "bug-outline" },
+    Reports: { filled: "bar-chart", outline: "bar-chart-outline" },
+    Projects: { filled: "folder", outline: "folder-outline" },
+    Backlog: { filled: "layers", outline: "layers-outline" },
+    Team: { filled: "people", outline: "people-outline" },
+    Users: { filled: "person", outline: "person-outline" },
+    Roles: { filled: "shield", outline: "shield-outline" },
+    Logs: { filled: "document-text", outline: "document-text-outline" },
+    CahierTest: { filled: "clipboard", outline: "clipboard-outline" },
+    Profile: { filled: "person-circle", outline: "person-circle-outline" },
+  };
 
 function createStyles(c: ThemePalette) {
   return StyleSheet.create({
@@ -117,8 +119,7 @@ export const InstagramTabBar: React.FC<BottomTabBarProps> = ({
           navigation.emit({ type: "tabLongPress", target: route.key });
         };
 
-        const isCenterBtn =
-          state.routes.length === 5 && index === 2;
+        const isCenterBtn = state.routes.length === 5 && index === 2;
 
         return (
           <TouchableOpacity

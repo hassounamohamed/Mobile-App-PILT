@@ -5,6 +5,7 @@ import { TextInputField } from "@/components/ui/TextInputField";
 import type { ThemePalette } from "@/constants/colors";
 import { SIZES } from "@/constants";
 import { useThemePalette } from "@/hooks/useThemePalette";
+import { useThemeStore } from "@/context/themeStore";
 import { USER_ROLES } from "@/constants/roles";
 import { useAuthStore } from "@/context/authStore";
 import { AuthStackParamList } from "@/navigation/types";
@@ -18,6 +19,7 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import React, { useMemo, useCallback, useState } from "react";
 import * as WebBrowser from "expo-web-browser";
 import {
+    Image,
     ScrollView,
     StyleSheet,
     Text,
@@ -42,19 +44,20 @@ function createStyles(c: ThemePalette) {
     alignItems: "center",
     marginBottom: SIZES.xl,
   },
-  headerIconWrap: {
-    width: SIZES.iconXl * 2.1,
-    height: SIZES.iconXl * 2.1,
-    borderRadius: SIZES.iconXl * 1.05,
-    backgroundColor: c.backgroundSecondary,
+  logoContainer: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    marginBottom: SIZES.xs,
+  },
+  logoImage: {
+    height: 150,
+    marginBottom: 0,
   },
   title: {
     fontSize: SIZES.font2xl,
     fontWeight: "700",
     color: c.text,
-    marginTop: SIZES.md,
+    marginTop: SIZES.xs,
     letterSpacing: 0.5,
   },
   subtitle: {
@@ -204,12 +207,95 @@ function createStyles(c: ThemePalette) {
     textAlign: "center",
     lineHeight: SIZES.fontBase * SIZES.lineHeightNormal,
   },
+  strengthContainer: {
+    marginBottom: SIZES.lg,
+    padding: SIZES.md,
+    backgroundColor: c.inputBackground,
+    borderRadius: SIZES.radiusLg,
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+  },
+  strengthHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: SIZES.sm,
+  },
+  strengthLabel: {
+    fontSize: SIZES.fontXs,
+    color: c.textSecondary,
+    fontWeight: "500",
+  },
+  strengthValueText: {
+    fontSize: SIZES.fontXs,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  strengthBarBackground: {
+    height: 6,
+    backgroundColor: c.inputBorder,
+    borderRadius: SIZES.radiusRound,
+    overflow: "hidden",
+    marginBottom: SIZES.md,
+  },
+  strengthBarActive: {
+    height: "100%",
+    borderRadius: SIZES.radiusRound,
+  },
+  rulesGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    rowGap: SIZES.sm,
+    columnGap: SIZES.xs,
+  },
+  ruleItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "48%",
+    gap: SIZES.xs,
+  },
+  ruleItemFull: {
+    flexDirection: "row",
+    alignItems: "center",
+    width: "100%",
+    gap: SIZES.xs,
+    marginTop: 2,
+  },
+  ruleText: {
+    fontSize: SIZES.fontXs - 1,
+    color: c.textSecondary,
+    fontWeight: "400",
+  },
+  ruleTextValid: {
+    color: c.success,
+    fontWeight: "500",
+  },
+  themeToggle: {
+    position: "absolute",
+    right: SIZES.lg,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: c.inputBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: c.inputBorder,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
 });
 }
 
 export const RegisterScreen = () => {
   const c = useThemePalette();
   const styles = useMemo(() => createStyles(c), [c]);
+  const { isDarkMode, toggleMode } = useThemeStore();
 
   const navigation =
     useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -227,6 +313,27 @@ export const RegisterScreen = () => {
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
+
+  const passwordChecks = useMemo(() => {
+    return {
+      length: password.length >= 8,
+      uppercase: /[A-Z]/.test(password),
+      lowercase: /[a-z]/.test(password),
+      number: /[0-9]/.test(password),
+      special: /[^A-Za-z0-9]/.test(password),
+    };
+  }, [password]);
+
+  const passwordStrength = useMemo(() => {
+    if (!password) return 0;
+    let score = 0;
+    if (passwordChecks.length) score++;
+    if (passwordChecks.uppercase) score++;
+    if (passwordChecks.lowercase) score++;
+    if (passwordChecks.number) score++;
+    if (passwordChecks.special) score++;
+    return score;
+  }, [password, passwordChecks]);
 
   const validateForm = useCallback(() => {
     const errors: Record<string, string> = {};
@@ -251,8 +358,8 @@ export const RegisterScreen = () => {
 
     if (!password) {
       errors.password = "Le mot de passe est requis";
-    } else if (password.length < 8) {
-      errors.password = "Le mot de passe doit avoir au moins 8 caractères";
+    } else if (passwordStrength < 5) {
+      errors.password = "Le mot de passe doit remplir toutes les conditions de sécurité";
     }
 
     if (!confirmPassword) {
@@ -263,7 +370,7 @@ export const RegisterScreen = () => {
 
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
-  }, [fullName, email, phoneNumber, selectedRole, password, confirmPassword]);
+  }, [fullName, email, phoneNumber, selectedRole, password, confirmPassword, passwordStrength]);
 
   const handleRegister = useCallback(async () => {
     if (!validateForm()) return;
@@ -400,17 +507,29 @@ export const RegisterScreen = () => {
         },
       ]}
     >
+      <TouchableOpacity
+        style={[styles.themeToggle, { top: insets.top > 0 ? insets.top + SIZES.sm : SIZES.md }]}
+        onPress={toggleMode}
+        activeOpacity={0.8}
+      >
+        <Ionicons
+          name={isDarkMode ? "sunny-outline" : "moon-outline"}
+          size={SIZES.iconMd}
+          color={c.text}
+        />
+      </TouchableOpacity>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.headerIconWrap}>
-            <Ionicons
-              name="checkmark-done-circle-outline"
-              size={SIZES.iconXl}
-              color={c.primary}
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("../../assets/images/flowpilot-logo.png")}
+              style={styles.logoImage}
+              resizeMode="contain"
             />
           </View>
           <Text style={styles.title}>Create your account</Text>
@@ -539,6 +658,127 @@ export const RegisterScreen = () => {
             error={validationErrors.password}
             icon="lock-closed-outline"
           />
+
+          {password.length > 0 && (
+            <View style={styles.strengthContainer}>
+              <View style={styles.strengthHeader}>
+                <Text style={styles.strengthLabel}>Force du mot de passe :</Text>
+                <Text
+                  style={[
+                    styles.strengthValueText,
+                    passwordStrength <= 2 && { color: c.error },
+                    (passwordStrength === 3 || passwordStrength === 4) && { color: c.warning },
+                    passwordStrength === 5 && { color: c.success },
+                  ]}
+                >
+                  {passwordStrength <= 2 && "Faible"}
+                  {(passwordStrength === 3 || passwordStrength === 4) && "Moyen"}
+                  {passwordStrength === 5 && "Sécurisé"}
+                </Text>
+              </View>
+
+              {/* Progress Bar Container */}
+              <View style={styles.strengthBarBackground}>
+                <View
+                  style={[
+                    styles.strengthBarActive,
+                    {
+                      width: `${(passwordStrength / 5) * 100}%`,
+                      backgroundColor:
+                        passwordStrength <= 2
+                          ? c.error
+                          : passwordStrength <= 4
+                          ? c.warning
+                          : c.success,
+                    },
+                  ]}
+                />
+              </View>
+
+              {/* Rules Checklist Grid */}
+              <View style={styles.rulesGrid}>
+                <View style={styles.ruleItem}>
+                  <Ionicons
+                    name={passwordChecks.length ? "checkmark-circle" : "ellipse-outline"}
+                    size={SIZES.iconXs}
+                    color={passwordChecks.length ? c.success : c.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.ruleText,
+                      passwordChecks.length && styles.ruleTextValid,
+                    ]}
+                  >
+                    Min. 8 caractères
+                  </Text>
+                </View>
+
+                <View style={styles.ruleItem}>
+                  <Ionicons
+                    name={passwordChecks.uppercase ? "checkmark-circle" : "ellipse-outline"}
+                    size={SIZES.iconXs}
+                    color={passwordChecks.uppercase ? c.success : c.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.ruleText,
+                      passwordChecks.uppercase && styles.ruleTextValid,
+                    ]}
+                  >
+                    Une majuscule (A-Z)
+                  </Text>
+                </View>
+
+                <View style={styles.ruleItem}>
+                  <Ionicons
+                    name={passwordChecks.lowercase ? "checkmark-circle" : "ellipse-outline"}
+                    size={SIZES.iconXs}
+                    color={passwordChecks.lowercase ? c.success : c.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.ruleText,
+                      passwordChecks.lowercase && styles.ruleTextValid,
+                    ]}
+                  >
+                    Une minuscule (a-z)
+                  </Text>
+                </View>
+
+                <View style={styles.ruleItem}>
+                  <Ionicons
+                    name={passwordChecks.number ? "checkmark-circle" : "ellipse-outline"}
+                    size={SIZES.iconXs}
+                    color={passwordChecks.number ? c.success : c.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.ruleText,
+                      passwordChecks.number && styles.ruleTextValid,
+                    ]}
+                  >
+                    Un chiffre (0-9)
+                  </Text>
+                </View>
+
+                <View style={styles.ruleItemFull}>
+                  <Ionicons
+                    name={passwordChecks.special ? "checkmark-circle" : "ellipse-outline"}
+                    size={SIZES.iconXs}
+                    color={passwordChecks.special ? c.success : c.textSecondary}
+                  />
+                  <Text
+                    style={[
+                      styles.ruleText,
+                      passwordChecks.special && styles.ruleTextValid,
+                    ]}
+                  >
+                    Un caractère spécial (ex: @, #, $, %, etc.)
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
 
           <TextInputField
             label="Confirm Password"
